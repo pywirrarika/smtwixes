@@ -15,6 +15,7 @@ base="$HOME/wixes/smtwixes"
 moses="$HOME/mosesdecoder"
 wixnlp="$HOME/wixes/wixnlp"
 corpus="$HOME/wixes/wixarikacorpora"
+europarl="$HOME/wixes/europarl"
 
 #####################################
 # Check if directories exists
@@ -74,7 +75,7 @@ rm $base/corpus/train.wix
 rm $base/corpus/train.norm*;
 rm $base/corpus/train.arpa*;
 rm $base/corpus/train.tokens*;
-cp $corpus/largecorpus.wixes $base/corpus/.
+cp $corpus/largecorpus.wixes $base/corpus/corpus.wixes
 
 if (( clean == 1 )) 
     then
@@ -91,7 +92,7 @@ if (( partial == 0 ))
         echo "   | - Train spanish language model"
         #rm $base/corpus/model*;
         #rm $base/corpus/train.blm*;
-        $moses/scripts/tokenizer/tokenizer.perl -l es < $base/corpus/europarl-v7.es-en.es  > $base/corpus/model.tokens.es -threads 8
+        $moses/scripts/tokenizer/tokenizer.perl -l es < $europarl/europarl-v7.es-en.es  > $base/corpus/model.tokens.es -threads 8
         tr '[:upper:]' '[:lower:]' < $base/corpus/model.tokens.es > $base/corpus/model.tokens.low.es
 
         $moses/bin/lmplz -o 3 < $base/corpus/model.tokens.low.es >  $base/corpus/model.arpa.es
@@ -106,10 +107,12 @@ echo "   | - Nomralize wixarika text"
 # Separete parallel corpus and normalize
 python3 $wixnlp/tools/sep.py $base/corpus/corpus
 
+echo $base/corpus
 ls $base/corpus
 
 # This corpus is inversed, so we need to fix the file extensions
 # TODO: Change the order
+
 cp $base/corpus/corpus.wix $base/corpus/corpus.estmp
 mv $base/corpus/corpus.es $base/corpus/corpus.wix
 mv $base/corpus/corpus.estmp $base/corpus/corpus.es
