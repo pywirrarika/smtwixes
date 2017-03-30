@@ -1,9 +1,22 @@
 #/bin/bash
 #
-# Author: Manuel Mager
-# Copyright 2017
-# License: GPL 3+
-#
+# Copyright (C) 2016.
+# Author: Jesús Manuel Mager Hois
+# e-mail: <fongog@gmail.com>
+# Project website: http://turing.iimas.unam.mx/wix/
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ####################################
@@ -11,32 +24,54 @@
 # Substitute the path to the tools
 ####################################
 
-base="$HOME/wixes/smtwixes"
+work="$HOME/wixes"
+base="$work/smtwixes"
 moses="$HOME/mosesdecoder"
-wixnlp="$HOME/wixes/wixnlp"
-corpus="$HOME/wixes/wixarikacorpora"
-europarl="$HOME/wixes/europarl"
+wixnlp="$work/wixnlp"
+corpus="$work/wixarikacorpora"
+europarl="$work/europarl"
 
 #####################################
 # Check if directories exists
 ######################################
-if [ ! -d "$wixnlp" ]; then
-    git clone https://github.com/pywirrarika/wixnlp.git $base/wixes/wixnlp
-else
+if [ -d "$wixnlp" ]; then
     echo "wixNLP found."
+else
+    git clone https://github.com/pywirrarika/wixnlp.git $work/wixnlp
 fi
 
-if [ ! -d "$corpus" ]; then
-    git clone https://github.com/pywirrarika/wixarikacorpora.git $base/wixes/wixarikacorpora
-else
+if [ -d "$corpus" ]; then
     echo "Wixarika corpus found."
+else
+    git clone https://github.com/pywirrarika/wixarikacorpora.git $work/wixarikacorpora
+fi
+
+
+if [ -d "$corpus" ]; then
+    echo "Wixarika corpus found."
+else
+    git clone https://github.com/pywirrarika/wixarikacorpora.git $work/wixarikacorpora
+fi
+
+if [ -d "$europarl" ]; then
+    echo "Europarl Spanish corpus found."
+else
+    mkdir $europarl
+    wget http://code.kiutz.com/wix/europarl-v7.es-en.es 
+    mv europarl-v7.es-en.es $europarl/europarl-v7.es-en.es
 fi
 
 if [ ! -f $moses/bin/moses ]; then
+    echo "----------------------------------------"
     echo "Moses not found!"
-    echo $moses/bin/moses
+    echo "You need MOSES to run the translator and"
+    echo "some text pre processing rutines. This"
+    echo "script will stop at some point after doing"
+    echo "all step where MOSES is not necesary."
+    echo "----------------------------------------"
     exit 0
 fi
+
 
 #######################################
 # Input line variables 
@@ -70,11 +105,13 @@ shift $((OPTIND-1))
 [ "$1" = "--" ] && shift
 
 
-rm $base/corpus/train.es
-rm $base/corpus/train.wix
-rm $base/corpus/train.norm*;
+rm $base/corpus/corpus.es
+rm $base/corpus/corpus.wix
+rm $base/corpus/corpus.norm*;
 rm $base/corpus/train.arpa*;
-rm $base/corpus/train.tokens*;
+rm $base/corpus/corpus.tokens*;
+rm $base/corpus/model.tokens*;
+rm -rf $base/wixsinmorph/*
 cp $corpus/largecorpus.wixes $base/corpus/corpus.wixes
 
 if (( clean == 1 )) 
@@ -92,6 +129,12 @@ if (( partial == 0 ))
         echo "   | - Train spanish language model"
         #rm $base/corpus/model*;
         #rm $base/corpus/train.blm*;
+        if [ ! -f $moses/bin/moses ]; then
+            echo "Moses not found!"
+            echo $moses/bin/moses
+            exit 0
+        fi
+
         $moses/scripts/tokenizer/tokenizer.perl -l es < $europarl/europarl-v7.es-en.es  > $base/corpus/model.tokens.es -threads 8
         tr '[:upper:]' '[:lower:]' < $base/corpus/model.tokens.es > $base/corpus/model.tokens.low.es
 
@@ -121,6 +164,12 @@ mv $base/corpus/corpus.estmp $base/corpus/corpus.es
 sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.wix
 sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.es
 
+if [ ! -f $moses/bin/moses ]; then
+    echo "Moses not found!"
+    echo $moses/bin/moses
+    exit 0
+fi
+
 echo "   | - Nomralize spanish text"
 # Normalize spanish part of the corpus
 $moses/scripts/tokenizer/tokenizer.perl -l es < $base/corpus/corpus.es  > $base/corpus/corpus.tokens.es -threads 8
@@ -135,8 +184,8 @@ then
 
     #Use each word as a word, removing the moprh separator of 
     #the corpus.
-    cat $base/corpus/corpus.wix | tr -d '-' > $base/corpus/corpus2.wix
-    python3 $wixnlp/normwix.py -a $base/corpus/corpus2.wix corpus/corpus.norm.wix 
+    #cat $base/corpus/corpus.wix | tr -d '-' > $base/corpus/corpus2.wix
+    python3 $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/corpus.norm.wix 
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixsinmorph/\
         -external-bin-dir $moses/tools\
