@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2016.
+# Copyright (C) 2017.
 # Author: Jesús Manuel Mager Hois
 # e-mail: <fongog@gmail.com>
 # Project website: http://turing.iimas.unam.mx/wix/
@@ -203,7 +203,6 @@ morph=0
 morferssor=0
 tags=0
 lang=0
-es=0
 
 while getopts "h?pcntlem:" opt; do
     case "$opt" in
@@ -237,7 +236,8 @@ rm $base/corpus/corpus.norm*;
 rm $base/corpus/corpus.tokens*;
 rm $base/corpus/model.tokens*;
 rm -rf $base/wixsinmorph/*
-cp $corpus/largecorpus.wixes $base/corpus/corpus.wixes
+cp $corpus/trainset.wixes $base/corpus/corpus.wixes
+cp $corpus/testset.wixes $base/corpus/test.wixes
 
 if (( clean == 1 )) 
     then
@@ -264,9 +264,9 @@ normescorp
 
 ###### Step 5 (Starting Moses)
 echo "-- Training Moses"
-if (( morph == 0  && es == 0 && tags == 0))
+if (( morph == 0  && tags == 0))
     then
-        #trainwixessinmorph
+        trainwixessinmorph
         traineswixsinmorph
 fi
 
