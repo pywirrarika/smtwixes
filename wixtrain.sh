@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 #
 # Copyright (C) 2016.
 # Author: Jesús Manuel Mager Hois
@@ -30,6 +30,125 @@ moses="$HOME/mosesdecoder"
 wixnlp="$work/wixnlp"
 corpus="$work/wixarikacorpora"
 europarl="$work/europarl"
+
+
+####################################
+# Configuration variables.
+# Substitute the path to the tools
+####################################
+
+function cleanlm {
+        echo "Removing data"
+        rm -rf $base/wixsinmorph/*;
+        echo "Done"
+        exit 0
+}
+
+function partialtrainwix {
+        echo "*  Train wixarika language model"
+
+        # We need moses to train the language model
+        if [ ! -f $moses/bin/moses ]; then
+            echo "Moses not found!"
+            echo $moses/bin/moses
+            exit 0
+        fi
+        
+        $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/model.tokens.wix
+
+        tr '[:upper:]' '[:lower:]' < $base/corpus/model.tokens.wix > $base/corpus/model.tokens.low.wix
+
+        $moses/bin/lmplz -o 3 < $base/corpus/model.tokens.low.wix >  $base/corpus/model.arpa.wix
+        $moses/bin/build_binary $base/corpus/model.arpa.wix    $base/corpus/train.blm.wix
+}
+
+function partialtraineses {
+        echo "*  Train spanish language model"
+
+        # We need moses to train the language model
+        if [ ! -f $moses/bin/moses ]; then
+            echo "Moses not found!"
+            echo $moses/bin/moses
+            exit 0
+        fi
+
+        $moses/scripts/tokenizer/tokenizer.perl -l es < $europarl/europarl-v7.es-en.es  > $base/corpus/model.tokens.es -threads 8
+        tr '[:upper:]' '[:lower:]' < $base/corpus/model.tokens.es > $base/corpus/model.tokens.low.es
+
+        $moses/bin/lmplz -o 3 < $base/corpus/model.tokens.low.es >  $base/corpus/model.arpa.es
+        $moses/bin/build_binary $base/corpus/model.arpa.es    $base/corpus/train.blm.es
+}
+
+
+
+function normwixcorp {
+
+    # Separete parallel corpus and normalize
+    python3 $wixnlp/tools/sep.py $base/corpus/corpus
+
+    echo $base/corpus
+    ls $base/corpus
+
+    # This corpus is inversed, so we need to fix the file extensions
+    # TODO: Change the order
+
+    cp $base/corpus/corpus.wix $base/corpus/corpus.estmp
+    mv $base/corpus/corpus.es $base/corpus/corpus.wix
+    mv $base/corpus/corpus.estmp $base/corpus/corpus.es
+
+    # Delete empty lines
+    sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.wix
+    sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.es
+
+    python3 $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/corpus.norm.wix 
+}
+
+
+
+function normescorp {
+
+    if [ ! -f $moses/bin/moses ]; then
+        echo "Moses not found!"
+        echo $moses/bin/moses
+        exit 0
+    fi
+
+    # Normalize spanish part of the corpus
+    $moses/scripts/tokenizer/tokenizer.perl -l es < $base/corpus/corpus.es  > $base/corpus/corpus.tokens.es -threads 8
+    tr '[:upper:]' '[:lower:]' < $base/corpus/corpus.tokens.es > $base/corpus/corpus.norm.es
+}
+
+function trainwixessinmorph {
+    echo "Train statical phrase based model"
+    echo "----------------------------------------------------"
+    
+    #cat $base/corpus/corpus.wix | tr -d '-' > $base/corpus/corpus2.wix
+    $moses/scripts/training/train-model.perl\
+        -root-dir $base/wixsinmorph/\
+        -external-bin-dir $moses/tools\
+        --lm 0:3:$base/corpus/train.blm.es\
+        -corpus $base/corpus/corpus.norm -f wix -e es\
+        -alignment grow-diag-final-and \
+        --mgiza \
+        --parallel \
+        -reordering msd-bidirectional-fe
+}
+
+function traineswixsinmorph {
+    echo "Train statical phrase based model"
+    echo "----------------------------------------------------"
+    
+    $moses/scripts/training/train-model.perl\
+        -root-dir $base/eswixsinmorph/\
+        -external-bin-dir $moses/tools\
+        --lm 0:3:$base/corpus/train.blm.wix\
+        -corpus $base/corpus/corpus.norm -f es -e wix\
+        -alignment grow-diag-final-and \
+        --mgiza \
+        --parallel \
+        -reordering msd-bidirectional-fe
+}
+
 
 #####################################
 # Check if directories exists
@@ -105,10 +224,16 @@ shift $((OPTIND-1))
 [ "$1" = "--" ] && shift
 
 
+#############################
+# Training steps
+#############################
+
+
+###### Step 1
+echo "-- Clean folders"
 rm $base/corpus/corpus.es
 rm $base/corpus/corpus.wix
 rm $base/corpus/corpus.norm*;
-rm $base/corpus/train.arpa*;
 rm $base/corpus/corpus.tokens*;
 rm $base/corpus/model.tokens*;
 rm -rf $base/wixsinmorph/*
@@ -116,85 +241,33 @@ cp $corpus/largecorpus.wixes $base/corpus/corpus.wixes
 
 if (( clean == 1 )) 
     then
-        echo "Removing data"
-        rm -rf $base/wixsinmorph/*;
-        echo "Done"
-        exit 0
+        cleanlm
 fi
 
-echo "-- Training bilingual model --"
+###### Step 2
+echo " -- Nomralize wixarika text"
+normwixcorp
 
+###### Step 3
+echo "-- Training bilingual model --"
 if (( partial == 0 ))
     then
-        echo "   | - Train spanish language model"
-        #rm $base/corpus/model*;
-        #rm $base/corpus/train.blm*;
-        if [ ! -f $moses/bin/moses ]; then
-            echo "Moses not found!"
-            echo $moses/bin/moses
-            exit 0
-        fi
-
-        $moses/scripts/tokenizer/tokenizer.perl -l es < $europarl/europarl-v7.es-en.es  > $base/corpus/model.tokens.es -threads 8
-        tr '[:upper:]' '[:lower:]' < $base/corpus/model.tokens.es > $base/corpus/model.tokens.low.es
-
-        $moses/bin/lmplz -o 3 < $base/corpus/model.tokens.low.es >  $base/corpus/model.arpa.es
-        $moses/bin/build_binary $base/corpus/model.arpa.es    $base/corpus/train.blm.es
-
+        partialtrainwix
+        partialtraineses
         exit 1
-
 fi
 
-echo "   | - Nomralize wixarika text"
+###### Step 4 
+echo "-- Nomralize spanish text"
+normescorp
 
-# Separete parallel corpus and normalize
-python3 $wixnlp/tools/sep.py $base/corpus/corpus
 
-echo $base/corpus
-ls $base/corpus
-
-# This corpus is inversed, so we need to fix the file extensions
-# TODO: Change the order
-
-cp $base/corpus/corpus.wix $base/corpus/corpus.estmp
-mv $base/corpus/corpus.es $base/corpus/corpus.wix
-mv $base/corpus/corpus.estmp $base/corpus/corpus.es
-
-# Delete empty lines
-sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.wix
-sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.es
-
-if [ ! -f $moses/bin/moses ]; then
-    echo "Moses not found!"
-    echo $moses/bin/moses
-    exit 0
-fi
-
-echo "   | - Nomralize spanish text"
-# Normalize spanish part of the corpus
-$moses/scripts/tokenizer/tokenizer.perl -l es < $base/corpus/corpus.es  > $base/corpus/corpus.tokens.es -threads 8
-tr '[:upper:]' '[:lower:]' < $base/corpus/corpus.tokens.es > $base/corpus/corpus.norm.es
-
-echo "   | - Training Moses"
+###### Step 5 (Starting Moses)
+echo "-- Training Moses"
 if (( morph == 0  && es == 0 && tags == 0))
-then
-    echo "Train statical phrase based model"
-    echo "----------------------------------------------------"
-    
-
-    #Use each word as a word, removing the moprh separator of 
-    #the corpus.
-    #cat $base/corpus/corpus.wix | tr -d '-' > $base/corpus/corpus2.wix
-    python3 $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/corpus.norm.wix 
-    $moses/scripts/training/train-model.perl\
-        -root-dir $base/wixsinmorph/\
-        -external-bin-dir $moses/tools\
-        --lm 0:3:$base/corpus/train.blm.es\
-        -corpus $base/corpus/corpus.norm -f wix -e es\
-        -alignment grow-diag-final-and \
-        --mgiza \
-        --parallel \
-        -reordering msd-bidirectional-fe
+    then
+        #trainwixessinmorph
+        traineswixsinmorph
 fi
 
 ####### Morphessor code
