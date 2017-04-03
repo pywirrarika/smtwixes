@@ -120,8 +120,9 @@ function normescorp {
 
 function trainmorph {
     echo "Train morphology..."
-    $base/bin/trainsegment.py -i $base/corpus/corpus.wix -o $base/corpus/model.moprh.bin
-    $base/bin/segment.py -m $base/corpus/model.moprh.bin -i $base/corpus/corpus.norm.wix -o $base/corpus/corpus.seg.wix
+    $base/bin/trainsegment.py -i $base/corpus/corpus.wix -o $base/corpus/model.morph.bin
+    $base/bin/segment.py -m $base/corpus/model.morph.bin -i $base/corpus/corpus.norm.wix -o $base/corpus/corpus.seg.wix
+    cp $base/corpus/corpus.seg.wix $base/corpus/corpus.norm.wix
     if [ -d "$base/wixeswithmorph" ]; then
         mkdir $base/wixeswithmorph
     fi
@@ -130,6 +131,36 @@ function trainmorph {
     fi
 }
 
+
+function trainwixeswithmorph {
+    echo "Train statical phrase based model"
+    echo "----------------------------------------------------"
+    
+    $moses/scripts/training/train-model.perl\
+        -root-dir $base/wixeswithmorph/\
+        -external-bin-dir $moses/tools\
+        --lm 0:3:$base/corpus/train.blm.es\
+        -corpus $base/corpus/corpus.norm -f wix -e es\
+        -alignment grow-diag-final-and \
+        --mgiza \
+        --parallel \
+        -reordering msd-bidirectional-fe
+}
+
+function traineswixwithmoprh {
+    echo "Train statical phrase based model"
+    echo "----------------------------------------------------"
+    
+    $moses/scripts/training/train-model.perl\
+        -root-dir $base/eswixwithmorph/\
+        -external-bin-dir $moses/tools\
+        --lm 0:3:$base/corpus/train.blm.wix\
+        -corpus $base/corpus/corpus.norm -f wix -e es\
+        -alignment grow-diag-final-and \
+        --mgiza \
+        --parallel \
+        -reordering msd-bidirectional-fe
+}
 
 function trainwixessinmorph {
     echo "Train statical phrase based model"
@@ -265,7 +296,23 @@ fi
 echo " -- Nomralize wixarika text"
 normwixcorp
 
-###### Step 3
+###### Step 3 
+echo "-- Nomralize spanish text"
+normescorp
+
+###### Step 4
+if (( morph == 1 ))
+then
+    if which morfessor >/dev/null; then
+        echo "Morfessor Found!"
+    else
+        echo "Morfessor is not installed! This program is needed for morphological translation. Exiting..."
+        exit
+    fi
+    trainmorph
+fi
+
+###### Step 5
 echo "-- Training bilingual model --"
 if (( partial == 0 ))
     then
@@ -274,22 +321,16 @@ if (( partial == 0 ))
         exit 1
 fi
 
-###### Step 4 
-echo "-- Nomralize spanish text"
-normescorp
-
-if (( morph == 1 ))
-then
-    trainmorph
-fi
-
-
 ###### Step 5 (Starting Moses)
 echo "-- Training Moses"
 if (( morph == 0  && tags == 0))
     then
         trainwixessinmorph
         traineswixsinmorph
+    elif (( morph == 1 && tags == 0))
+    then
+        trainwixeswithmorph
+        traineswixwithmoprh
 fi
 
 ####### Morphessor code
