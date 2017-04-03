@@ -118,6 +118,19 @@ function normescorp {
     tr '[:upper:]' '[:lower:]' < $base/corpus/corpus.tokens.es > $base/corpus/corpus.norm.es
 }
 
+function trainmorph {
+    echo "Train morphology..."
+    $base/bin/trainsegment.py -i $base/corpus/corpus.wix -o $base/corpus/model.moprh.bin
+    $base/bin/segment.py -m $base/corpus/model.moprh.bin -i $base/corpus/corpus.norm.wix -o $base/corpus/corpus.seg.wix
+    if [ -d "$base/wixeswithmorph" ]; then
+        mkdir $base/wixeswithmorph
+    fi
+    if [ -d "$base/eswixwithmorph" ]; then
+        mkdir $base/eswixwithmorph
+    fi
+}
+
+
 function trainwixessinmorph {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
@@ -214,6 +227,10 @@ while getopts "h?pcntlem:" opt; do
         p)  
             partial=0 # Dont genertate LM
             ;;
+
+        m) 
+            morph=1
+            ;;
         c)  
             clean=1 # Remove all generated files
             ;;
@@ -260,6 +277,11 @@ fi
 ###### Step 4 
 echo "-- Nomralize spanish text"
 normescorp
+
+if (( morph == 1 ))
+then
+    trainmorph
+fi
 
 
 ###### Step 5 (Starting Moses)
