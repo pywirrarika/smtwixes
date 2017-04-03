@@ -34,6 +34,7 @@ europarl="$work/europarl"
 
 morph=0
 tags=0
+tranlate=0
 while getopts "h?nte:" opt; do
     case "$opt" in
          h|\?)
@@ -92,20 +93,20 @@ then
     $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.es < $base/testing/test.hyp.es
     $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.wix < $base/testing/test.hyp.wix
     echo "#TER"
-    awk '{print $0, "(", NR, ")"}' corpus/eval/prueba.hyp.es > corpus/eval/prueba.hyp.ter.es
-    awk '{print $0, "(", NR, ")"}' corpus/eval/prueba.es > corpus/eval/prueba.ter.es
-    java -jar $tereval -r corpus/eval/prueba.ter.es -h corpus/eval/prueba.hyp.ter.es
+    awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.es > $base/testing/test.hyp.ter.es
+    awk '{print $0, "(", NR, ")"}' $base/corpus/test.es > $base/testing/test.ter.es
+    java -jar $tereval -r $base/testing/test.ter.es -h $base/testing/test.hyp.ter.es
 
     echo "#WER"
-    python3 $wereval /home/gog/corpus/eval/prueba.es /home/gog/corpus/eval/prueba.hyp.es
+    python3 $wereval $base/corpus/test.es $base/testing/test.hyp.es
 
     echo "#BLEU"
     echo "#TER"
-    awk '{print $0, "(", NR, ")"}' corpus/eval/prueba.hyp.wix > corpus/eval/prueba.hyp.ter.wix
-    awk '{print $0, "(", NR, ")"}' corpus/eval/prueba.wix > corpus/eval/prueba.ter.wix
-    java -jar $tereval -r corpus/eval/prueba.ter.wix -h corpus/eval/prueba.hyp.ter.wix
+    awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.wix > $base/testing/test.hyp.ter.wix
+    awk '{print $0, "(", NR, ")"}' $base/corpus/test.wix > $base/testing/test.ter.wix
+    java -jar $tereval -r $base/testing/test.ter.wix -h $base/testing/test.hyp.ter.wix
     echo "#WER"
-    python3 $wereval /home/gog/corpus/eval/prueba.wix /home/gog/corpus/eval/prueba.hyp.wix
+    python3 $wereval $base/corpus/test.wix $base/testing/test.hyp.wix
 
 fi
 
