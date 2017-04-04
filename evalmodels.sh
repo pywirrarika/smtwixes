@@ -35,15 +35,15 @@ europarl="$work/europarl"
 morph=0
 tags=0
 tranlate=0
-while getopts "h?nte:" opt; do
+while getopts "h?mte:" opt; do
     case "$opt" in
          h|\?)
-              echo "evalmodel.sh [--morph | --nomoprh | --tags]"
+              echo "evalmodel.sh [--morph | --moprh | --tags]"
               echo "  Default --nomoprh"
               exit 0
               ;;
-        n)  
-            morph=0
+        m)  
+            morph=1
             ;;
         t)
             tags=1
@@ -79,6 +79,24 @@ then
         <  $base/corpus/test.es\
         >  $base/testing/test.hyp.wix
     cat $base/testing/test.hyp.wix
+else
+    echo "Morphological Translation"
+    echo "Translating..."
+
+    $base/bin/segment.py -m $base/corpus/model.morph.bin -i $base/corpus/test.norm.wix -o $base/corpus/test.seg.wix
+ 
+    $moses/bin/moses            \
+        -f $base/wixeswithmorph/model/moses.ini   \
+        < $base/corpus/test.seg.wix         \
+        > $base/testing/test.hyp.es \
+    cat $base/testing/test.hyp.es
+
+    $moses/bin/moses            \
+        -f $base/eswixsinmorph/model/moses.ini   \
+        <  $base/corpus/test.es\
+        >  $base/testing/test.hyp.wix
+    cat $base/testing/test.hyp.wix
+
 fi
 
 echo "##### Evaluation"
@@ -87,7 +105,7 @@ echo "##### Evaluation"
     #tr '\n' ' ' < corpus/eval/prueba.morph.wix > corpus/eval/prueba.morph.endl.wix
     #tr '@@@' '\n' < corpus/eval/prueba.morph.endl.wix > corpus/eval/prueba.morph.wix
     #sed -i '/^[[:space:]]*$/d' corpus/eval/prueba.morph.wix
-if (( es == 0))
+if (( morph == 0))
 then
     echo "#BLEU"
     $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.es < $base/testing/test.hyp.es
@@ -97,16 +115,29 @@ then
     awk '{print $0, "(", NR, ")"}' $base/corpus/test.es > $base/testing/test.ter.es
     java -jar $tereval -r $base/testing/test.ter.es -h $base/testing/test.hyp.ter.es
 
-    echo "#WER"
-    python3 $wereval $base/corpus/test.es $base/testing/test.hyp.es
+    #echo "#WER"
+    #python3 $wereval $base/corpus/test.es $base/testing/test.hyp.es
 
     echo "#BLEU"
     echo "#TER"
     awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.wix > $base/testing/test.hyp.ter.wix
     awk '{print $0, "(", NR, ")"}' $base/corpus/test.wix > $base/testing/test.ter.wix
     java -jar $tereval -r $base/testing/test.ter.wix -h $base/testing/test.hyp.ter.wix
-    echo "#WER"
-    python3 $wereval $base/corpus/test.wix $base/testing/test.hyp.wix
+    #echo "#WER"
+    #python3 $wereval $base/corpus/test.wix $base/testing/test.hyp.wix
+else
+    echo "#BLEU"
+    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.es < $base/testing/test.hyp.es
+    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.seg.wix < $base/testing/test.hyp.wix
+    echo "#TER"
+    awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.es > $base/testing/test.hyp.ter.es
+    awk '{print $0, "(", NR, ")"}' $base/corpus/test.es > $base/testing/test.ter.es
+    java -jar $tereval -r $base/testing/test.ter.es -h $base/testing/test.hyp.ter.es
+    
+    awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.wix > $base/testing/test.hyp.ter.wix
+    awk '{print $0, "(", NR, ")"}' $base/corpus/test.seg.wix > $base/testing/test.seg.ter.wix
+    java -jar $tereval -r $base/testing/test.seg.ter.wix -h $base/testing/test.hyp.ter.wix
+ 
 
 fi
 
