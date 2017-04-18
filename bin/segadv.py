@@ -25,10 +25,10 @@ import pickle
 
 import nltk
 import morfessor
-from ngrams import classif
+from .ngrams import classif
 
 class Segment():
-    def __init__(self, infile, outfile, modelfile):
+    def __init__(self, infile, outfile, modelfile, dicfile, wixlm="wixgrams.pickle", eslm="esgrams.pickle"):
         #F = open("../corpus/corpus.norm2.wix", "r").read()
         #corpus = F.split()
         #fq = nltk.FreqDist(corpus)
@@ -36,17 +36,17 @@ class Segment():
 
 
         # Collect data for the classification
-        dicwix = open(infile, "r").read()
+        dicwix = open(dicfile, "r").read()
         dic = set(dicwix.split(" \n"))
         self.dicw = list(dic)
 
         self.F = open(infile, "r")
         self.corp = []
 
-        with open('wixgrams.pickle', 'rb') as f:
+        with open(wixlm, 'rb') as f:
             self.wixngrams= pickle.load(f)
 
-        with open('esgrams.pickle', 'rb') as f:
+        with open(eslm, 'rb') as f:
             self.esngrams= pickle.load(f)
 
         self.punct = ".,;:\"{}[]()$%&/¿?¡!-"
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     parser.add_option("-s", "--segmentable", action="store_false", dest="seg", default=True, help="Output only segmentable words", metavar="FILE")
     (options, args) = parser.parse_args()
 
-    co = Segment(options.input, options.output, options.model)
+    co = Segment(options.input, options.output, options.model, dicfile="../corpus/dicplur.norm2.wix")
     co.segment()
     if options.prints:
         co.print()
