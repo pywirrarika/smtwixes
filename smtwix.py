@@ -1,11 +1,12 @@
+#!/usr/bin/env python3
+
+
 import os
 
 from wixnlp.tools.sep import split, merge
 from wixnlp.normwix import normwix as normalize
 from wixnlp.normwix import tokenizewix as tokenize
 from wixnlp.segadv import Segment
-
-
 
 print(" **  Wixarika corpus preprocessing **")
 print("     using wixnlp ...")
@@ -43,3 +44,8 @@ seg.print(lines=10)
 seg.segment_morfessor()
 seg.print(lines=10)
 
+seg = Segment(wix_corpus_norm, wix_corpus_seg, wix_seg_model, wix_dic, wix_lm, es_lm)
+seg.classify()
+seg.print(lines=10)
+seg.segment_wixnlp()
+seg.print(lines=10)
