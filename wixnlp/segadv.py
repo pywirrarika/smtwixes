@@ -22,6 +22,7 @@
 
 from optparse import OptionParser
 import pickle
+import re
 
 import nltk
 import morfessor
@@ -38,7 +39,9 @@ class Segment():
 
         # Collect data for the classification
         dicwix = open(dicfile, "r").read()
-        dic = set(dicwix.split(" \n"))
+        dicwix = dicwix.replace(" \n", "\n")
+
+        dic = set(dicwix.split("\n"))
         self.dicw = list(dic)
 
         self.F = open(infile, "r")
@@ -72,6 +75,7 @@ class Segment():
     def classify(self):
         i=0
         outseg = open("segcorp.wix", "w")
+        print(self.dicw)
         for line in self.F:
             linelist = []
             sline= line.split()
@@ -105,6 +109,8 @@ class Segment():
         for line in self.corp:
             for word in line:
                 if word[1] == "S":
+                    if "hakewa" in word:
+                        print("************** hakewa found")
                     v = Verb(word[0])
                     #segmentation = " ".join()
                     print(word[0])
