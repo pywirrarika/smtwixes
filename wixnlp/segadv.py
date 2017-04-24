@@ -28,6 +28,7 @@ import nltk
 import morfessor
 from .ngrams import classif
 from .wmorph import Verb
+from .morphgrams import Mgrams
 
 class Segment():
     def __init__(self, infile, outfile, modelfile, dicfile, wixlm="wixgrams.pickle", eslm="esgrams.pickle"):
@@ -75,7 +76,6 @@ class Segment():
     def classify(self):
         i=0
         outseg = open("segcorp.wix", "w")
-        print(self.dicw)
         for line in self.F:
             linelist = []
             sline= line.split()
@@ -106,16 +106,17 @@ class Segment():
                     word[0] = segmentation
 
     def segment_wixnlp(self):
+        #mgrams = Mgrams(debug=True)
+        mgrams = Mgrams()
+        mgrams.load()
         for line in self.corp:
             for word in line:
                 if word[1] == "S":
-                    if "hakewa" in word:
-                        print("************** hakewa found")
                     v = Verb(word[0])
-                    #segmentation = " ".join()
                     print(word[0])
-                    print(v.paths)
-                    word[0] = v.paths
+                    path = mgrams.best(v.paths)
+                    print(path)
+                    word[0] = path
 
     def print(self, lines=-1):
         i = 0
