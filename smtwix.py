@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-
 import os
 
 from wixnlp.tools.sep import split, merge
 from wixnlp.normwix import normwix as normalize
 from wixnlp.normwix import tokenizewix as tokenize
 from wixnlp.segadv import Segment
+from wixnlp.morphgrams import Mgrams
+
 
 print(" **  Wixarika corpus preprocessing **")
 print("     using wixnlp ...")
