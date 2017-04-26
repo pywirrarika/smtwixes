@@ -26,7 +26,6 @@ FWixnlp = open(wix_wixnlp_hyp, "w")
 FWixnlpA = open(wix_wixnlp_alone_hyp, "w")
 FCombined = open(wix_combined, "w")
 
-seg = Fseg.read().split("\n")
 non = Fnon.read().split("\n")
 
 #Load wixnlp segmentator
@@ -57,10 +56,10 @@ for i in range(len(non)):
             path_op = p
             max = len(p)
     pa = [e[1] for e in path_op]
-    if len(pa)sd == 0:
+    if len(pa) == 0:
         print(non[i], file=FWixnlpA)
     else:
-        print(" ".join(pa), file=FWixnlp) 
+        print(" ".join(pa), file=FWixnlpA) 
 
     ### MGrams Segmentation
     path = mgrams.best(v.paths)
