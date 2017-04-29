@@ -33,9 +33,9 @@ corpus="$work/wixarikacorpora"
 europarl="$work/europarl"
 
 morph=0
-tags=0
+seg=0
 tranlate=0
-while getopts "h?mte:" opt; do
+while getopts "h?mtes:" opt; do
     case "$opt" in
          h|\?)
               echo "evalmodel.sh [--morph | --moprh | --tags]"
@@ -44,6 +44,9 @@ while getopts "h?mte:" opt; do
               ;;
         m)  
             morph=1
+            ;;
+        s)  
+            seg=1
             ;;
         t)
             tags=1
@@ -55,16 +58,13 @@ shift $((OPTIND-1))
 
 echo "* Split test corpus"
 python3 $wixnlp/tools/sep.py $base/corpus/test
-mv $base/corpus/test.es $base/corpus/test.es2
-mv $base/corpus/test.wix $base/corpus/test.es
-mv $base/corpus/test.es2 $base/corpus/test.wix
 
 echo "* Normalize test corpus"
 python3 $wixnlp/normwix.py -a $base/corpus/test.wix $base/corpus/test.norm.wix
 
 
 echo "##### Translate..."
-if (( morph == 0 ))
+if (( morph == 0 && seg == 0))
 then
     echo "No morphological translation"
     echo "Translating..."
@@ -79,24 +79,44 @@ then
         <  $base/corpus/test.es\
         >  $base/testing/test.hyp.wix
     cat $base/testing/test.hyp.wix
-else
+fi
+
+
+if (( morph == 0 && seg == 1))
+then
+    echo "With improved morphological translation"
+    echo "Translating..."
+
+    python3 seg.py
+    $moses/bin/moses            \
+        -f $base/wixeswixnlp/model/moses.ini   \
+        < $base/corpus/test.seg.wix\
+        > $base/testing/test.hyp.es \
+
+    #$moses/bin/moses            \
+    #    -f $base/eswixsinmorph/model/moses.ini   \
+    #    <  $base/corpus/test.es\
+    #    >  $base/testing/test.hyp.wix
+fi
+
+if (( morph == 1 && seg == 0))
+then
+
     echo "Morphological Translation"
     echo "Translating..."
 
     $base/bin/segment.py -m $base/corpus/model.morph.bin -i $base/corpus/test.norm.wix -o $base/corpus/test.seg.wix
  
+
     $moses/bin/moses            \
         -f $base/wixeswithmorph/model/moses.ini   \
         < $base/corpus/test.seg.wix         \
         > $base/testing/test.hyp.es \
-    cat $base/testing/test.hyp.es
 
     $moses/bin/moses            \
-        -f $base/eswixsinmorph/model/moses.ini   \
+        -f $base/eswixwithmorph/model/moses.ini   \
         <  $base/corpus/test.es\
         >  $base/testing/test.hyp.wix
-    cat $base/testing/test.hyp.wix
-
 fi
 
 echo "##### Evaluation"
@@ -118,14 +138,15 @@ then
     #echo "#WER"
     #python3 $wereval $base/corpus/test.es $base/testing/test.hyp.es
 
-    echo "#BLEU"
     echo "#TER"
     awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.wix > $base/testing/test.hyp.ter.wix
     awk '{print $0, "(", NR, ")"}' $base/corpus/test.wix > $base/testing/test.ter.wix
     java -jar $tereval -r $base/testing/test.ter.wix -h $base/testing/test.hyp.ter.wix
     #echo "#WER"
-    #python3 $wereval $base/corpus/test.wix $base/testing/test.hyp.wix
 else
+
+    echo '######## Morhological transaltion'
+
     echo "#BLEU"
     $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.es < $base/testing/test.hyp.es
     $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.seg.wix < $base/testing/test.hyp.wix
@@ -136,8 +157,6 @@ else
     
     awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.wix > $base/testing/test.hyp.ter.wix
     awk '{print $0, "(", NR, ")"}' $base/corpus/test.seg.wix > $base/testing/test.seg.ter.wix
-    java -jar $tereval -r $base/testing/test.seg.ter.wix -h $base/testing/test.hyp.ter.wix
- 
-
+    java -jar $tereval -N -r $base/testing/test.seg.ter.wix -h $base/testing/test.hyp.ter.wix
 fi
 

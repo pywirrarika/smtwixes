@@ -93,14 +93,13 @@ function normwixcorp {
     # TODO: Change the order
 
     cp $base/corpus/corpus.wix $base/corpus/corpus.estmp
-    mv $base/corpus/corpus.es $base/corpus/corpus.wix
-    mv $base/corpus/corpus.estmp $base/corpus/corpus.es
 
     # Delete empty lines
     sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.wix
     sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.es
 
     python3 $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/corpus.norm.wix 
+    python3 $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/corpus.norm2.wix 
 }
 
 
@@ -136,6 +135,7 @@ function trainwixeswithmorph {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
     
+    rm -rf $base/wixesconmorph/*
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixeswithmorph/\
         -external-bin-dir $moses/tools\
@@ -150,7 +150,8 @@ function trainwixeswithmorph {
 function traineswixwithmoprh {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
-    
+
+    rm -rf $base/eswixconmorph/*
     $moses/scripts/training/train-model.perl\
         -root-dir $base/eswixwithmorph/\
         -external-bin-dir $moses/tools\
@@ -166,6 +167,7 @@ function trainwixessinmorph {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
     
+    rm -rf $base/wixessinmorph/*
     #cat $base/corpus/corpus.wix | tr -d '-' > $base/corpus/corpus2.wix
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixsinmorph/\
@@ -181,7 +183,7 @@ function trainwixessinmorph {
 function traineswixsinmorph {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
-    
+    rm -rf $base/eswixsinmorph/*
     $moses/scripts/training/train-model.perl\
         -root-dir $base/eswixsinmorph/\
         -external-bin-dir $moses/tools\
@@ -193,6 +195,41 @@ function traineswixsinmorph {
         -reordering msd-bidirectional-fe
 }
 
+
+function trainwixeswixnlp {
+    echo "Train statical phrase based model"
+    echo "----------------------------------------------------"
+    rm -rf $base/wixeswixnlp/*
+    rm -rf $base/eswixwixnlp/*
+    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.wix
+    $moses/scripts/training/train-model.perl\
+        -root-dir $base/wixeswixnlp/\
+        -external-bin-dir $moses/tools\
+        --lm 0:3:$base/corpus/train.blm.es\
+        -corpus $base/corpus/corpus -f wix -e es\
+        -alignment grow-diag-final-and \
+        --mgiza \
+        --parallel \
+        -reordering msd-bidirectional-fe
+}
+
+
+function trainwixeshier {
+    echo "Train statical hierarchical model"
+    echo "----------------------------------------------------"
+    rm -rf $base/wixeshier/*
+    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.wix
+    $moses/scripts/training/train-model.perl\
+        -root-dir $base/wixeshier/\
+        -external-bin-dir $moses/tools\
+        --lm 0:3:$base/corpus/train.blm.es\
+        -corpus $base/corpus/corpus -f wix -e es\
+        -alignment grow-diag-final-and \
+        --mgiza \
+        --parallel \
+        -hierarchical \
+        -glue-grammar 
+}
 
 #####################################
 # Check if directories exists
@@ -247,8 +284,8 @@ morph=0
 morferssor=0
 tags=0
 lang=0
-
-while getopts "h?pcntlem:" opt; do
+hier=0
+while getopts "h?pcnlemsi:" opt; do
     case "$opt" in
          h|\?)
              echo "wixtrain [-f(full DEF)|-p(partial)|-c(clean)|-m(morph DEF)|-n(nomoprh)|-t(morph with tags)|-e(spanish to wixarika)]"
@@ -261,6 +298,12 @@ while getopts "h?pcntlem:" opt; do
 
         m) 
             morph=1
+            ;;
+        s)
+            sep=1
+            ;;
+        i)
+            hier=1
             ;;
         c)  
             clean=1 # Remove all generated files
@@ -283,7 +326,9 @@ rm $base/corpus/corpus.wix
 rm $base/corpus/corpus.norm*;
 rm $base/corpus/corpus.tokens*;
 rm $base/corpus/model.tokens*;
-rm -rf $base/wixsinmorph/*
+
+
+
 cp $corpus/trainset.wixes $base/corpus/corpus.wixes
 cp $corpus/testset.wixes $base/corpus/test.wixes
 
@@ -323,15 +368,22 @@ fi
 
 ###### Step 5 (Starting Moses)
 echo "-- Training Moses"
-if (( morph == 0  && tags == 0))
+if (( morph == 0  && sep == 0 && hier == 0))
     then
         trainwixessinmorph
         traineswixsinmorph
-    elif (( morph == 1 && tags == 0))
+    elif (( morph == 1 && sep == 0 && hier == 0))
     then
         trainwixeswithmorph
         traineswixwithmoprh
+    elif (( morph == 0 && sep == 1 && hier == 0))
+    then
+        trainwixeswixnlp
+    elif (( morph == 0 && sep == 0 && hier == 1))
+    then
+        trainwixeshier
 fi
+
 
 ####### Morphessor code
     #python3 corpus/wixpre.py corpus/train2.wix corpus/train.norm.wix

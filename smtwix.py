@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+#import threading
 import os
+from multiprocessing import Process
 
 from wixnlp.tools.sep import split, merge
 from wixnlp.normwix import normwix as normalize
@@ -33,20 +35,52 @@ Fo.write(text_tokens)
 
 # Morphological segmenarion
 
-wix_corpus_seg = "corpus/corpus.seg.wix"
+wix_corpus_morf_seg = "corpus/corpus.morf.seg.wix"
+wix_corpus_wixnlp_seg = "corpus/corpus.wixnlp.seg.wix"
+wix_corpus_comb_seg = "corpus/corpus.comb.seg.wix"
 wix_seg_model= "corpus/model.morph.bin"
 wix_dic = "corpus/dicplur.norm2.wix"
 wix_lm = "bin/wixgrams.pickle"
 es_lm = "bin/esgrams.pickle"
 
-seg = Segment(wix_corpus_norm, wix_corpus_seg, wix_seg_model, wix_dic, wix_lm, es_lm)
-seg.classify()
-seg.print(lines=10)
-seg.segment_morfessor()
-seg.print(lines=10)
+def morfessor_seg():
+    print(" ### SegMorf: Starting segmentation")
+    #data = threading.local()
+    seg = Segment(wix_corpus_norm, wix_corpus_morf_seg, wix_seg_model, wix_dic, wix_lm, es_lm)
+    seg.classify()  
+    seg.segment_morfessor()
+    seg.out_to_file()
+    print(" ### SegMorf: Done")
 
-seg = Segment(wix_corpus_norm, wix_corpus_seg, wix_seg_model, wix_dic, wix_lm, es_lm)
-seg.classify()
-seg.print(lines=10)
-seg.segment_wixnlp()
-seg.print(lines=10)
+def wixnlp_seg():
+    print(" ### SegWixNLP: Starting segmentation")
+    #data = threading.local()
+    seg = Segment(wix_corpus_norm, wix_corpus_wixnlp_seg, wix_seg_model, wix_dic, wix_lm, es_lm)
+    seg.classify()
+    seg.segment_wixnlp()
+    seg.out_to_file()
+    print(" ### SegWixNLP: Done")
+
+def comb_seg():
+    print(" ### SegCombined: Starting segmentation")
+    #data = threading.local()
+    seg = Segment(wix_corpus_norm, wix_corpus_comb_seg, wix_seg_model, wix_dic, wix_lm, es_lm)
+    seg.classify()
+    seg.segment_combined()
+    seg.out_to_file()
+    print(" ### SegCombined: Done")
+
+Process(target=morfessor_seg).start()
+Process(target=wixnlp_seg).start()
+Process(target=comb_seg).start()
+
+#morf = threading.Thread(target=morfessor_seg)
+#wix  = threading.Thread(target=wixnlp_seg)
+#comb = threading.Thread(target=comb_seg)
+#threads.append(morf)
+#threads.append(wix)
+#threads.append(comb)
+#morf.start()
+#wix.start()
+#comb.start()
+
