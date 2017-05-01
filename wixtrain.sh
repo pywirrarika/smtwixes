@@ -62,6 +62,21 @@ function partialtrainwix {
         $moses/bin/build_binary $base/corpus/model.arpa.wix    $base/corpus/train.blm.wix
 }
 
+
+function partialtrainwixseg {
+        echo "*  Train wixarika language model"
+
+        # We need moses to train the language model
+        if [ ! -f $moses/bin/moses ]; then
+            echo "Moses not found!"
+            echo $moses/bin/moses
+            exit 0
+        fi
+        
+        $moses/bin/lmplz -o 3 < $base/corpus/corpus.comb.seg.wix >  $base/corpus/model.seg.arpa.wix
+        $moses/bin/build_binary $base/corpus/model.seg.arpa.wix    $base/corpus/train.seg.blm.wix
+}
+
 function partialtraineses {
         echo "*  Train spanish language model"
 
@@ -200,7 +215,6 @@ function trainwixeswixnlp {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
     rm -rf $base/wixeswixnlp/*
-    rm -rf $base/eswixwixnlp/*
     cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.wix
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixeswixnlp/\
@@ -213,6 +227,21 @@ function trainwixeswixnlp {
         -reordering msd-bidirectional-fe
 }
 
+function traineswixwixnlp {
+    echo "Train statical phrase based model"
+    echo "----------------------------------------------------"
+    rm -rf $base/eswixwixnlp/*
+    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.wix
+    $moses/scripts/training/train-model.perl\
+        -root-dir $base/eswixwixnlp/\
+        -external-bin-dir $moses/tools\
+        --lm 0:3:$base/corpus/train.seg.blm.wix\
+        -corpus $base/corpus/corpus -f es -e wix\
+        -alignment grow-diag-final-and \
+        --mgiza \
+        --parallel \
+        -reordering msd-bidirectional-fe
+}
 
 function trainwixeshier {
     echo "Train statical hierarchical model"
@@ -224,6 +253,22 @@ function trainwixeshier {
         -external-bin-dir $moses/tools\
         --lm 0:3:$base/corpus/train.blm.es\
         -corpus $base/corpus/corpus -f wix -e es\
+        -alignment grow-diag-final-and \
+        --mgiza \
+        --parallel \
+        -hierarchical \
+        -glue-grammar 
+}
+function traineswixhier {
+    echo "Train statical hierarchical model"
+    echo "----------------------------------------------------"
+    rm -rf $base/wixeshier/*
+    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.wix
+    $moses/scripts/training/train-model.perl\
+        -root-dir $base/wixeshier/\
+        -external-bin-dir $moses/tools\
+        --lm 0:3:$base/corpus/train.seg.blm.wix\
+        -corpus $base/corpus/corpus -f es -e wix\
         -alignment grow-diag-final-and \
         --mgiza \
         --parallel \
@@ -362,6 +407,7 @@ echo "-- Training bilingual model --"
 if (( partial == 0 ))
     then
         partialtrainwix
+        partialtrainwixseg
         partialtraineses
         exit 1
 fi
@@ -372,16 +418,18 @@ if (( morph == 0  && sep == 0 && hier == 0))
     then
         trainwixessinmorph
         traineswixsinmorph
-    elif (( morph == 1 && sep == 0 && hier == 0))
+elif (( morph == 1 && sep == 0 && hier == 0))
     then
         trainwixeswithmorph
         traineswixwithmoprh
-    elif (( morph == 0 && sep == 1 && hier == 0))
+elif (( morph == 0 && sep == 1 && hier == 0))
     then
         trainwixeswixnlp
-    elif (( morph == 0 && sep == 0 && hier == 1))
+        traineswixwixnlp
+elif (( morph == 0 && sep == 0 && hier == 1))
     then
         trainwixeshier
+        traineswixhier
 fi
 
 

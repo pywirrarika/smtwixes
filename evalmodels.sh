@@ -35,7 +35,8 @@ europarl="$work/europarl"
 morph=0
 seg=0
 tranlate=0
-while getopts "h?mtes:" opt; do
+hier=0
+while getopts "h?mtesi:" opt; do
     case "$opt" in
          h|\?)
               echo "evalmodel.sh [--morph | --moprh | --tags]"
@@ -47,6 +48,9 @@ while getopts "h?mtes:" opt; do
             ;;
         s)  
             seg=1
+            ;;
+        i)
+            hier=1
             ;;
         t)
             tags=1
@@ -64,7 +68,7 @@ python3 $wixnlp/normwix.py -a $base/corpus/test.wix $base/corpus/test.norm.wix
 
 
 echo "##### Translate..."
-if (( morph == 0 && seg == 0))
+if (( morph == 0 && seg == 0 && hier == 0))
 then
     echo "No morphological translation"
     echo "Translating..."
@@ -82,7 +86,7 @@ then
 fi
 
 
-if (( morph == 0 && seg == 1))
+if (( morph == 0 && seg == 1 && hier == 0))
 then
     echo "With improved morphological translation"
     echo "Translating..."
@@ -93,13 +97,13 @@ then
         < $base/corpus/test.seg.wix\
         > $base/testing/test.hyp.es \
 
-    #$moses/bin/moses            \
-    #    -f $base/eswixsinmorph/model/moses.ini   \
-    #    <  $base/corpus/test.es\
-    #    >  $base/testing/test.hyp.wix
+    $moses/bin/moses            \
+        -f $base/eswixwixnlp/model/moses.ini   \
+        <  $base/corpus/test.es\
+        >  $base/testing/test.hyp.wix
 fi
 
-if (( morph == 1 && seg == 0))
+if (( morph == 1 && seg == 0 && hier == 0))
 then
 
     echo "Morphological Translation"
@@ -119,6 +123,24 @@ then
         >  $base/testing/test.hyp.wix
 fi
 
+
+if (( morph == 0 && seg == 0 && hier == 1))
+then
+
+    echo "Morphological Hierarchical Translation"
+
+    python3 seg.py
+    $moses/bin/moses            \
+        -f $base/wixeshier/model/moses.ini   \
+        < $base/corpus/test.seg.wix         \
+        > $base/testing/test.hyp.es \
+
+    $moses/bin/moses            \
+        -f $base/eswixhier/model/moses.ini   \
+        <  $base/corpus/test.es\
+        >  $base/testing/test.hyp.wix
+fi
+
 echo "##### Evaluation"
 #corpus/wixmorph.py corpus/eval/prueba.norm.wix corpus/train.wix.morph.bin > corpus/eval/prueba.morph.wix
     #morfessor-segment -L corpus/train.wix.morph.model corpus/eval/prueba.endl.wix -o corpus/eval/prueba.morph.wix
@@ -127,9 +149,6 @@ echo "##### Evaluation"
     #sed -i '/^[[:space:]]*$/d' corpus/eval/prueba.morph.wix
 if (( morph == 0))
 then
-    echo "#BLEU"
-    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.es < $base/testing/test.hyp.es
-    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.wix < $base/testing/test.hyp.wix
     echo "#TER"
     awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.es > $base/testing/test.hyp.ter.es
     awk '{print $0, "(", NR, ")"}' $base/corpus/test.es > $base/testing/test.ter.es
@@ -143,13 +162,15 @@ then
     awk '{print $0, "(", NR, ")"}' $base/corpus/test.wix > $base/testing/test.ter.wix
     java -jar $tereval -r $base/testing/test.ter.wix -h $base/testing/test.hyp.ter.wix
     #echo "#WER"
+    echo "#BLEU"
+    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.es < $base/testing/test.hyp.es
+    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.wix < $base/testing/test.hyp.wix
+
 else
 
     echo '######## Morhological transaltion'
 
-    echo "#BLEU"
-    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.es < $base/testing/test.hyp.es
-    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.seg.wix < $base/testing/test.hyp.wix
+
     echo "#TER"
     awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.es > $base/testing/test.hyp.ter.es
     awk '{print $0, "(", NR, ")"}' $base/corpus/test.es > $base/testing/test.ter.es
@@ -158,5 +179,9 @@ else
     awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.wix > $base/testing/test.hyp.ter.wix
     awk '{print $0, "(", NR, ")"}' $base/corpus/test.seg.wix > $base/testing/test.seg.ter.wix
     java -jar $tereval -N -r $base/testing/test.seg.ter.wix -h $base/testing/test.hyp.ter.wix
+
+    echo "#BLEU"
+    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.es < $base/testing/test.hyp.es
+    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.seg.wix < $base/testing/test.hyp.wix
 fi
 
