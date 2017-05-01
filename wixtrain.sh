@@ -171,7 +171,7 @@ function traineswixwithmoprh {
         -root-dir $base/eswixwithmorph/\
         -external-bin-dir $moses/tools\
         --lm 0:3:$base/corpus/train.blm.wix\
-        -corpus $base/corpus/corpus.norm -f wix -e es\
+        -corpus $base/corpus/corpus.norm -f es -e wix\
         -alignment grow-diag-final-and \
         --mgiza \
         --parallel \

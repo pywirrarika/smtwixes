@@ -130,6 +130,7 @@ then
     echo "Morphological Hierarchical Translation"
 
     python3 seg.py
+
     $moses/bin/moses            \
         -f $base/wixeshier/model/moses.ini   \
         < $base/corpus/test.seg.wix         \
