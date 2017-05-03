@@ -101,14 +101,6 @@ function normwixcorp {
     # Separete parallel corpus and normalize
     python3 $wixnlp/tools/sep.py $base/corpus/corpus
 
-    echo $base/corpus
-    ls $base/corpus
-
-    # This corpus is inversed, so we need to fix the file extensions
-    # TODO: Change the order
-
-    cp $base/corpus/corpus.wix $base/corpus/corpus.estmp
-
     # Delete empty lines
     sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.wix
     sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.es
@@ -373,7 +365,6 @@ rm $base/corpus/corpus.tokens*;
 rm $base/corpus/model.tokens*;
 
 cp $corpus/trainset.wixes $base/corpus/corpus.wixes
-cp $corpus/testset.wixes $base/corpus/test.wixes
 
 if (( clean == 1 )) 
     then

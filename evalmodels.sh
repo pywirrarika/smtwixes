@@ -60,6 +60,9 @@ done
 shift $((OPTIND-1))
 [ "$1" = "--" ] && shift
 
+
+cp $corpus/testset.wixes $base/corpus/test.wixes
+
 echo "* Split test corpus"
 python3 $wixnlp/tools/sep.py $base/corpus/test
 
