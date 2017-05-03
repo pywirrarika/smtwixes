@@ -26,7 +26,7 @@ import pickle
 import os
 
 class Mgrams():
-    def __init__(self, debug = False):
+    def __init__(self, debug=False):
         self.debug = debug
         self.morphgrams = {}
 
@@ -81,6 +81,7 @@ class Mgrams():
                 next = segword[i+1]
                 now = segword[i]
             except IndexError:
+                now = segword[i]
                 next = "#"
 
             try:

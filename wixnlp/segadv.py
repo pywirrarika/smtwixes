@@ -31,7 +31,7 @@ from .wmorph import Verb
 from .morphgrams import Mgrams
 
 class Segment():
-    def __init__(self, infile, outfile, modelfile, dicfile, wixlm="wixgrams.pickle", eslm="esgrams.pickle"):
+    def __init__(self, infile, outfile, modelfile, dicfile, wixlm="wixgrams.pickle", eslm="esgrams.pickle", debug=False):
         #F = open("../corpus/corpus.norm2.wix", "r").read()
         #corpus = F.split()
         #fq = nltk.FreqDist(corpus)
@@ -47,6 +47,8 @@ class Segment():
 
         self.F = open(infile, "r")
         self.corp = []
+
+        self.debug = debug
 
         with open(wixlm, 'rb') as f:
             self.wixngrams= pickle.load(f)
@@ -113,12 +115,35 @@ class Segment():
             for word in line:
                 if word[1] == "S":
                     v = Verb(word[0])
-                    print(word[0])
+                    #print(word[0])
                     path = mgrams.best(v.paths)
-                    print(path)
+                    #print(path)
+                    if len(path) == 0:
+                        path = word
                     word[0] = path
 
+    def segment_combined(self):
+        """Method that use WixNLP to segment a word, but if it
+        fails, then it uses morfessor."""
+        #mgrams = Mgrams(debug=True)
+        mgrams = Mgrams()
+        mgrams.load()
+        for line in self.corp:
+            for word in line:
+                if word[1] == "S":
+                    v = Verb(word[0])
+                    #print(word[0])
+                    path = mgrams.best(v.paths)
+                    if len(path) == 0:
+                        path = self.word_morph(word[0])
+                    #print(path)
+                    word[0] = path
+
+
     def print(self, lines=-1):
+        """Print results on screen. The printed lines can be 
+        limited with lines argument. The default is -1, that 
+        meens all."""
         i = 0
         for line in self.corp:
             if line != -1:
@@ -131,6 +156,7 @@ class Segment():
         print("Spanish words:", str(self.eswords))
 
     def word_morph(self, word):
+        """Segmentation interface to morfessor."""
         return self.model.viterbi_segment(word)[0]
 
     def output(self):
@@ -139,10 +165,15 @@ class Segment():
                 print(word[0], end=" ")
             print(" ")
 
-    def output_to_file(self):
+    def out_to_file(self):
+        """Output segmentation to file in self.outF"""
         for line in self.corp:
             for word in line:
-                print(word[0], end=" ", file=self.outF)
+                if isinstance(word[0], list):
+                    for e in word[0]:
+                        print(e, end=" ", file=self.outF)
+                else:
+                    print(word[0], end=" ", file=self.outF)
             print(" ", file=self.outF)
 
 

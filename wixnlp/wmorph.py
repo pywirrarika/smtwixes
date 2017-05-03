@@ -93,6 +93,29 @@ class Verb:
                         continue
         if not gotone:
             if pos > 17:
+                if self.debug:
+                    print("******************")
+                npath = []
+                for root in self.roots:
+                    if self.debug:
+                        print("Seraching ROOT", root)
+                    root2 = root.replace("+","\+")
+                    rootmatch=re.compile("^"+root2+"+")
+                    rm = rootmatch.match(self.verb)
+                    if rm:
+                        if self.debug:
+                            print("Found first:" + "[root]" + rm.group())
+                            print("Found first:" + "[root]" + root)
+                        nrprev = rm.group()
+                        nrpath = list(npath)
+                        nrpath.append(("", root))#id of steam TODO
+                        
+                        if self.debug:
+                            print(nrprev)
+                        if len(self.verb) == len(nrprev):
+                            self.paths.append(nrpath)
+                        self.end(prev=nrprev,path=nrpath)
+
                 return
             self.start(prev, pos+1, path)
             return
