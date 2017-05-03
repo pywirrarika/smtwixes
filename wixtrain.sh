@@ -215,12 +215,12 @@ function trainwixeswixnlp {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
     rm -rf $base/wixeswixnlp/*
-    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.wix
+    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.norm.wix
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixeswixnlp/\
         -external-bin-dir $moses/tools\
         --lm 0:3:$base/corpus/train.blm.es\
-        -corpus $base/corpus/corpus -f wix -e es\
+        -corpus $base/corpus/corpus.norm -f wix -e es\
         -alignment grow-diag-final-and \
         --mgiza \
         --parallel \
@@ -231,12 +231,12 @@ function traineswixwixnlp {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
     rm -rf $base/eswixwixnlp/*
-    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.wix
+    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.norm.wix
     $moses/scripts/training/train-model.perl\
         -root-dir $base/eswixwixnlp/\
         -external-bin-dir $moses/tools\
         --lm 0:3:$base/corpus/train.seg.blm.wix\
-        -corpus $base/corpus/corpus -f es -e wix\
+        -corpus $base/corpus/corpus.norm -f es -e wix\
         -alignment grow-diag-final-and \
         --mgiza \
         --parallel \
@@ -247,12 +247,12 @@ function trainwixeshier {
     echo "Train statical hierarchical model"
     echo "----------------------------------------------------"
     rm -rf $base/wixeshier/*
-    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.wix
+    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.norm.wix
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixeshier/\
         -external-bin-dir $moses/tools\
         --lm 0:3:$base/corpus/train.blm.es\
-        -corpus $base/corpus/corpus -f wix -e es\
+        -corpus $base/corpus/corpus.norm -f wix -e es\
         -alignment grow-diag-final-and \
         --mgiza \
         --parallel \
@@ -262,13 +262,13 @@ function trainwixeshier {
 function traineswixhier {
     echo "Train statical hierarchical model"
     echo "----------------------------------------------------"
-    rm -rf $base/wixeshier/*
-    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.wix
+    rm -rf $base/eswixhier/*
+    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.norm.wix
     $moses/scripts/training/train-model.perl\
-        -root-dir $base/wixeshier/\
+        -root-dir $base/eswixhier/\
         -external-bin-dir $moses/tools\
         --lm 0:3:$base/corpus/train.seg.blm.wix\
-        -corpus $base/corpus/corpus -f es -e wix\
+        -corpus $base/corpus/corpus.norm -f es -e wix\
         -alignment grow-diag-final-and \
         --mgiza \
         --parallel \
@@ -371,8 +371,6 @@ rm $base/corpus/corpus.wix
 rm $base/corpus/corpus.norm*;
 rm $base/corpus/corpus.tokens*;
 rm $base/corpus/model.tokens*;
-
-
 
 cp $corpus/trainset.wixes $base/corpus/corpus.wixes
 cp $corpus/testset.wixes $base/corpus/test.wixes

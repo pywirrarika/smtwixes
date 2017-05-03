@@ -66,6 +66,8 @@ python3 $wixnlp/tools/sep.py $base/corpus/test
 echo "* Normalize test corpus"
 python3 $wixnlp/normwix.py -a $base/corpus/test.wix $base/corpus/test.norm.wix
 
+$moses/scripts/tokenizer/tokenizer.perl -l es < $base/corpus/test.es > $base/testing/test.tokens.es -threads 8
+
 
 echo "##### Translate..."
 if (( morph == 0 && seg == 0 && hier == 0))
@@ -80,7 +82,7 @@ then
 
     $moses/bin/moses            \
         -f $base/eswixsinmorph/model/moses.ini   \
-        <  $base/corpus/test.es\
+        <  $base/testing/test.tokens.es\
         >  $base/testing/test.hyp.wix
     cat $base/testing/test.hyp.wix
 fi
@@ -99,7 +101,7 @@ then
 
     $moses/bin/moses            \
         -f $base/eswixwixnlp/model/moses.ini   \
-        <  $base/corpus/test.es\
+        <  $base/testing/test.tokens.es\
         >  $base/testing/test.hyp.wix
 fi
 
@@ -119,7 +121,7 @@ then
 
     $moses/bin/moses            \
         -f $base/eswixwithmorph/model/moses.ini   \
-        <  $base/corpus/test.es\
+        <  $base/testing/test.tokens.es\
         >  $base/testing/test.hyp.wix
 fi
 
@@ -138,7 +140,7 @@ then
 
     $moses/bin/moses            \
         -f $base/eswixhier/model/moses.ini   \
-        <  $base/corpus/test.es\
+        <  $base/testing/test.tokens.es\
         >  $base/testing/test.hyp.wix
 fi
 
@@ -152,7 +154,7 @@ if (( morph == 0))
 then
     echo "#TER"
     awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.es > $base/testing/test.hyp.ter.es
-    awk '{print $0, "(", NR, ")"}' $base/corpus/test.es > $base/testing/test.ter.es
+    awk '{print $0, "(", NR, ")"}' $base/testing/test.tokens.es > $base/testing/test.ter.es
     java -jar $tereval -r $base/testing/test.ter.es -h $base/testing/test.hyp.ter.es
 
     #echo "#WER"
@@ -164,7 +166,7 @@ then
     java -jar $tereval -r $base/testing/test.ter.wix -h $base/testing/test.hyp.ter.wix
     #echo "#WER"
     echo "#BLEU"
-    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.es < $base/testing/test.hyp.es
+    $moses/scripts/generic/multi-bleu.perl -lc $base/testing/test.tokens.es < $base/testing/test.hyp.es
     $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.wix < $base/testing/test.hyp.wix
 
 else
@@ -174,7 +176,7 @@ else
 
     echo "#TER"
     awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.es > $base/testing/test.hyp.ter.es
-    awk '{print $0, "(", NR, ")"}' $base/corpus/test.es > $base/testing/test.ter.es
+    awk '{print $0, "(", NR, ")"}' $base/testing/test.tokens.es > $base/testing/test.ter.es
     java -jar $tereval -r $base/testing/test.ter.es -h $base/testing/test.hyp.ter.es
     
     awk '{print $0, "(", NR, ")"}' $base/testing/test.hyp.wix > $base/testing/test.hyp.ter.wix
@@ -182,7 +184,7 @@ else
     java -jar $tereval -N -r $base/testing/test.seg.ter.wix -h $base/testing/test.hyp.ter.wix
 
     echo "#BLEU"
-    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.es < $base/testing/test.hyp.es
+    $moses/scripts/generic/multi-bleu.perl -lc $base/testing/test.tokens.es < $base/testing/test.hyp.es
     $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.seg.wix < $base/testing/test.hyp.wix
 fi
 
