@@ -31,6 +31,8 @@ wixnlp="$work/wixnlp"
 corpus="$work/wixarikacorpora"
 europarl="$work/europarl"
 
+withdic=0
+dicwixes="$work/dicplur.wixes"
 
 ####################################
 # Configuration variables.
@@ -134,6 +136,12 @@ function trainmorph {
     fi
     if [ -d "$base/eswixwithmorph" ]; then
         mkdir $base/eswixwithmorph
+    fi
+    if [ -d "$base/wixeswixnlp" ]; then
+        mkdir $base/wixeswixnlp
+    fi
+    if [ -d "$base/eswixwixnlp" ]; then
+        mkdir $base/eswixwixnlp
     fi
 }
 
@@ -322,7 +330,7 @@ morferssor=0
 tags=0
 lang=0
 hier=0
-while getopts "h?pcnlemsi:" opt; do
+while getopts "h?pcnlemsid:" opt; do
     case "$opt" in
          h|\?)
              echo "wixtrain [-f(full DEF)|-p(partial)|-c(clean)|-m(morph DEF)|-n(nomoprh)|-t(morph with tags)|-e(spanish to wixarika)]"
@@ -342,6 +350,9 @@ while getopts "h?pcnlemsi:" opt; do
         i)
             hier=1
             ;;
+        d)
+            withdic=1
+            ;;
         c)  
             clean=1 # Remove all generated files
             ;;
@@ -357,6 +368,7 @@ shift $((OPTIND-1))
 
 
 ###### Step 1
+echo "############### STEP 1 ################"
 echo "-- Clean folders"
 rm $base/corpus/corpus.es
 rm $base/corpus/corpus.wix
@@ -372,14 +384,18 @@ if (( clean == 1 ))
 fi
 
 ###### Step 2
+echo "############### STEP 2 ################"
 echo " -- Nomralize wixarika text"
 normwixcorp
 
 ###### Step 3 
+echo "############### STEP 3 ################"
 echo "-- Nomralize spanish text"
 normescorp
 
 ###### Step 4
+echo "############### STEP 4 ################"
+echo ""
 if (( morph == 1 ))
 then
     if which morfessor >/dev/null; then
@@ -392,7 +408,9 @@ then
 fi
 
 ###### Step 5
+echo "############### STEP 5 ################"
 echo "-- Training bilingual model --"
+
 if (( partial == 0 ))
     then
         partialtrainwix
@@ -401,8 +419,28 @@ if (( partial == 0 ))
         exit 1
 fi
 
-###### Step 5 (Starting Moses)
+##### Step 6 
+echo "############### STEP 6 ################"
+echo "-- Adding bilingual dictionary"
+
+if (( withdic == 1 ))
+then
+    cp $dicwixes $base/corpus/dicwixes.wixes
+    python3 $wixnlp/tools/sep.py $base/corpus/dicwixes
+    tr -d '-' < $base/corpus/dicwixes.wix > $base/corpus/dicwixes.pre.wix
+    $wixnlp/normwix.py -a $base/corpus/dicwixes.pre.wix $base/corpus/dicwixes.norm.wix
+    $moses/scripts/tokenizer/tokenizer.perl -l es < $base/corpus/dicwixes.es  > $base/corpus/dicwixes.tokens.es -threads 8
+    tr '[:upper:]' '[:lower:]' < $base/corpus/dicwixes.tokens.es > $base/corpus/dicwixes.norm.es
+    cat $base/corpus/dicwixes.norm.es >> $base/corpus/corpus.norm.es
+    cat $base/corpus/dicwixes.norm.wix >> $base/corpus/corpus.norm.wix
+    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.norm.wix
+    cat $base/corpus/dicwixes.norm.wix >> $base/corpus/corpus.norm.wix
+fi
+
+###### Step 7 (Starting Moses)
+echo "############### STEP 7 ################"
 echo "-- Training Moses"
+
 if (( morph == 0  && sep == 0 && hier == 0))
     then
         trainwixessinmorph

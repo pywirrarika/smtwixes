@@ -70,7 +70,8 @@ echo "* Normalize test corpus"
 python3 $wixnlp/normwix.py -a $base/corpus/test.wix $base/corpus/test.norm.wix
 
 $moses/scripts/tokenizer/tokenizer.perl -l es < $base/corpus/test.es > $base/testing/test.tokens.es -threads 8
-
+tr '[:upper:]' '[:lower:]' < $base/testing/test.tokens.es > $base/testing/test.norm.es
+cp $base/testing/test.norm.es $base/testing/test.tokens.es
 
 echo "##### Translate..."
 if (( morph == 0 && seg == 0 && hier == 0))
