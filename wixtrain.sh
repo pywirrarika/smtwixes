@@ -106,7 +106,7 @@ function normwixcorp {
     sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.es
 
     python3 $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/corpus.norm.wix 
-    python3 $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/corpus.norm2.wix 
+    #python3 $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/corpus.norm2.wix 
 }
 
 

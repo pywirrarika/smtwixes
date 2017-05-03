@@ -24,7 +24,7 @@ import re
 def normwix(text):
     text = text.lower()
     text = re.sub(r"´", "'", text, flags=re.IGNORECASE)
-    #text = re.sub(r"'", "", text, flags=re.IGNORECASE)
+    #text = re.sub(r"-", "", text, flags=re.IGNORECASE)
     text = re.sub(r"v", "w", text, flags=re.IGNORECASE)
     text = re.sub(r"(c|qu)", "k", text, flags=re.IGNORECASE)
     text = re.sub(r"[0-9]+", "", text, flags=re.IGNORECASE)
