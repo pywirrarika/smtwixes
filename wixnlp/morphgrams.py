@@ -19,11 +19,110 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# This script trains a 2-gram model where the grams
-# are morphemes of a segmented wixarika corpus. 
 
 import pickle
 import os
+
+class M3grams():
+    def __init__(self, debug=False):
+        self.debug = debug
+        self.morphgrams = {}
+
+    def train(self, filename):
+        "Train the model"
+        morphfreq = {}
+        binfilename=os.path.join(os.path.dirname(__file__), 'wix/morph3grams.pickle')
+        count = 0
+
+        F = open(filename).read().split("\n")
+
+        # Counting frequencies of morphems pairs in the corpus. We use segmented 
+        # words by -. 
+        for line in F:
+            morphs= line.split()
+            print(morphs)
+            for i in range(len(morphs)):
+                try:
+                    prev2 = morphs[i-2]
+                    prev1 = morphs[i-1]
+                    now = morphs[i]
+                except IndexError:
+                    prev2 = "#"
+                    now = morphs[i]
+                    try:
+                        prev1 = morphs[i-1]
+                        now = morphs[i]
+                    except IndexError:
+                        prev1 = "#"
+                count = count + 1
+                if self.debug:
+                    print(prev2, prev1, now)
+                try:
+                    morphfreq[(prev2, prev1, now)] = morphfreq[(prev2, prev1, now)] + 1
+                except KeyError:
+                    morphfreq[(prev2, prev1, now)] = 1
+
+        # Then we generatethe propabailites
+        for gram in morphfreq.keys():
+            self.morphgrams[gram] = float(morphfreq[gram])/float(count)
+        print(count)
+
+        print(self.morphgrams)
+
+        with open(binfilename, "wb") as F:
+            pickle.dump(self.morphgrams, F, pickle.HIGHEST_PROTOCOL)
+
+
+    def load(self, filename=os.path.join(os.path.dirname(__file__), 'wix/morph3grams.pickle')):
+        with open(filename, 'rb') as f:
+            self.morphgrams = pickle.load(f)
+        if self.debug:
+            print("Size of model:", str(len(self.morphgrams)))
+
+    def prob(self, segword):
+        """ Return the probability of a given list of wixarika morphemes"""
+        count = 0
+        sum_prob = 0
+        for i in range(len(segword)):
+            try:
+                prev2 = segword[i-2]
+                prev1 = segword[i-1]
+                now = segword[i]
+            except IndexError:
+                prev2 = "#"
+                now = segword[i]
+                try:
+                    prev1 = segword[i-1]
+                    now = segword[i]
+                except IndexError:
+                    prev1 = "#"
+ 
+
+            try:
+                sum_prob = sum_prob + self.morphgrams[(prev2, prev1, now)]
+            except KeyError:
+                pass
+
+            count = count+1
+        prob = sum_prob / count
+        return prob
+
+    def best(self, words):
+        """Returns the most probable segmentation option of a list"""
+        max = -1
+        seg = []
+        for word in words:
+            li = [m[1] for m in word]
+            prob = self.prob(li)
+            if self.debug:
+                print(str(li), ":", str(prob))
+            if prob > max:
+                seg = li
+                max = prob
+        return seg
+        
+# This script trains a 2-gram model where the grams
+# are morphemes of a segmented wixarika corpus. 
 
 class Mgrams():
     def __init__(self, debug=False):
@@ -33,44 +132,47 @@ class Mgrams():
     def train(self, filename):
         "Train the model"
         morphfreq = {}
-        F = open(filename)
+        binfilename=os.path.join(os.path.dirname(__file__), 'wix/morphgrams.pickle')
 
+
+        F = open(filename).read().split("\n")
         count = 0
+        if self.debug:
+            print("Corpus size:", len(F))
 
         # Counting frequencies of morphems pairs in the corpus. We use segmented 
         # words by -. 
         for line in F:
-            wixline = line.split("=")[0]
-            wixs = wixline.split()
-            for word in wixs:
-                if "-" in word:
-                    morphs = word.split("-")
-                    for i in range(len(morphs)):
-                        try:
-                            next = morphs[i+1]
-                            now = morphs[i]
-                        except IndexError:
-                            next = "#"
-                        count = count + 1
-                        try:
-                            morphfreq[(now, next)] = morphfreq[(now, next)] + 1
-                        except KeyError:
-                            morphfreq[(now, next)] = 1
+            #wixline = line.split("=")[0]
+            morphs = line.split()
+            for i in range(len(morphs)):
+                try:
+                    prev = morphs[i-1]
+                    now = morphs[i]
+                except IndexError:
+                    prev = "#"
+                count = count + 1
+                try:
+                    morphfreq[(prev, now)] = morphfreq[(prev, now)] + 1
+                except KeyError:
+                    morphfreq[(prev, now)] = 1
 
         # Then we generatethe propabailites
         for gram in morphfreq.keys():
             self.morphgrams[gram] = float(morphfreq[gram])/float(count)
-        print(count)
 
+        print(count)
         print(self.morphgrams)
 
-        with open("morphgrams.pickle", "wb") as F:
+        with open(binfilename, "wb") as F:
             pickle.dump(self.morphgrams, F, pickle.HIGHEST_PROTOCOL)
 
 
     def load(self, filename=os.path.join(os.path.dirname(__file__), 'wix/morphgrams.pickle')):
         with open(filename, 'rb') as f:
             self.morphgrams = pickle.load(f)
+        if self.debug:
+            print("Size of model:", str(len(self.morphgrams)))
 
     def prob(self, segword):
         """ Return the probability of a given list of wixarika morphemes"""
@@ -78,14 +180,14 @@ class Mgrams():
         sum_prob = 0
         for i in range(len(segword)):
             try:
-                next = segword[i+1]
+                prev = segword[i-1]
                 now = segword[i]
             except IndexError:
                 now = segword[i]
-                next = "#"
+                prev = "#"
 
             try:
-                sum_prob = sum_prob + self.morphgrams[(now, next)]
+                sum_prob = sum_prob + self.morphgrams[(prev, now)]
             except KeyError:
                 pass
 

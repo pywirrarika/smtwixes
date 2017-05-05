@@ -2,7 +2,6 @@ from wixnlp.tools.sep import split, merge
 from wixnlp.normwix import normwix as normalize
 from wixnlp.normwix import tokenizewix as tokenize
 from wixnlp.segadv import Segment
-from wixnlp.morphgrams import Mgrams
 
 # Normalize and tokenize corpus
 print(" ### Normalize and tokenize")
@@ -30,7 +29,7 @@ def comb_seg():
     #data = threading.local()
     seg = Segment(wix_corpus_norm, wix_corpus_comb_seg, wix_seg_model, wix_dic, wix_lm, es_lm)
     seg.classify()
-    seg.segment_combined()
+    seg.segment_combined3()
     seg.out_to_file()
     print(" ### SegCombined: Done")
 

@@ -28,7 +28,7 @@ import nltk
 import morfessor
 from .ngrams import classif
 from .wmorph import Verb
-from .morphgrams import Mgrams
+from .morphgrams import Mgrams, M3grams
 
 class Segment():
     def __init__(self, infile, outfile, modelfile, dicfile, wixlm="wixgrams.pickle", eslm="esgrams.pickle", debug=False):
@@ -121,14 +121,50 @@ class Segment():
                     if len(path) == 0:
                         path = word
                     word[0] = path
+    def segment_wixnlp3(self):
+        #mgrams = Mgrams(debug=True)
+        mgrams = M3grams()
+        mgrams.load()
+        for line in self.corp:
+            for word in line:
+                if word[1] == "S":
+                    v = Verb(word[0])
+                    #print(word[0])
+                    path = mgrams.best(v.paths)
+                    #print(path)
+                    if len(path) == 0:
+                        path = word
+                    word[0] = path
+
 
     def segment_combined(self):
-        """Method that use WixNLP to segment a word, but if it
+        """Method that use WixNLP +2grams to segment a word, but if it
         fails, then it uses morfessor."""
         #mgrams = Mgrams(debug=True)
         mgrams = Mgrams()
         mgrams.load()
         for line in self.corp:
+            if self.debug:
+                print(line)
+            for word in line:
+                if word[1] == "S":
+                    v = Verb(word[0])
+                    #print(word[0])
+                    path = mgrams.best(v.paths)
+                    if len(path) == 0:
+                        path = self.word_morph(word[0])
+                    #print(path)
+                    word[0] = path
+
+    def segment_combined3(self):
+        """Method that use WixNLP +3grams to segment a word, but if it
+        fails, then it uses morfessor."""
+        #mgrams = Mgrams(debug=True)
+        mgrams = M3grams()
+        mgrams.load()
+        for line in self.corp:
+            if self.debug:
+                print(line)
             for word in line:
                 if word[1] == "S":
                     v = Verb(word[0])

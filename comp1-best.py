@@ -19,14 +19,18 @@ def compare(hypfile, reffile, verbose=False, model=""):
     print(model, "Result 1-best match = ", str(float(matched)/float(i)))
 
 if __name__ == "__main__":
-    comb = "segtest/combined.hyp.wix"
     ref  = "segtest/segmentedtest.wix"
+    morf = "segtest/morfessor.hyp.wix"
     wixa = "segtest/wixnlp-alone.hyp.wix"
     wixb = "segtest/wixnlp.hyp.wix"
-    morf = "segtest/morfessor.hyp.wix"
+    wixb3 = "segtest/wixnlp3.hyp.wix"
+    comb = "segtest/combined.hyp.wix"
+    comb3 = "segtest/combined3.hyp.wix"
 
     compare(morf, ref, model="Morfessor     ")
     compare(wixa, ref, model="WixNLP        ")
-    compare(wixb, ref, model="WixNLP+MGrams ", verbose=True)
+    compare(wixb, ref, model="WixNLP+2Grams ", verbose=True)
+    compare(wixb3, ref, model="WixNLP+3Grams ")
     compare(comb, ref, model="Hybrid        ")
+    compare(comb3, ref, model="Hybrid3       ")
 
