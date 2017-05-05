@@ -147,10 +147,10 @@ function trainmorph {
 
 
 function trainwixeswithmorph {
-    echo "Train statical phrase based model"
+    echo "Train statical phrase based model with morph"
     echo "----------------------------------------------------"
     
-    rm -rf $base/wixesconmorph/*
+    rm -rf $base/wixeswithmorph/*
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixeswithmorph/\
         -external-bin-dir $moses/tools\
@@ -163,10 +163,10 @@ function trainwixeswithmorph {
 }
 
 function traineswixwithmoprh {
-    echo "Train statical phrase based model"
+    echo "Train statical phrase based model with morph"
     echo "----------------------------------------------------"
 
-    rm -rf $base/eswixconmorph/*
+    rm -rf $base/eswixwithmorph/*
     $moses/scripts/training/train-model.perl\
         -root-dir $base/eswixwithmorph/\
         -external-bin-dir $moses/tools\
@@ -182,7 +182,7 @@ function trainwixessinmorph {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
     
-    rm -rf $base/wixessinmorph/*
+    rm -rf $base/wixsinmorph/*
     #cat $base/corpus/corpus.wix | tr -d '-' > $base/corpus/corpus2.wix
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixsinmorph/\
