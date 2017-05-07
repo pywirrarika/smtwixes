@@ -9,6 +9,8 @@ def compare(hypfile, reffile, verbose=False, model=""):
 
     matched = 0
     i = 0
+    if verbose:
+        print(len(hyp))
     for n in range(len(hyp)):
         i = i + 1
         if hyp[n] == ref[n]:
@@ -29,8 +31,8 @@ if __name__ == "__main__":
 
     compare(morf, ref, model="Morfessor     ")
     compare(wixa, ref, model="WixNLP        ")
-    compare(wixb, ref, model="WixNLP+2Grams ", verbose=True)
+    compare(wixb, ref, model="WixNLP+2Grams ")
     compare(wixb3, ref, model="WixNLP+3Grams ")
     compare(comb, ref, model="Hybrid        ")
-    compare(comb3, ref, model="Hybrid3       ")
+    compare(comb3, ref, model="Hybrid3       ", verbose=True)
 

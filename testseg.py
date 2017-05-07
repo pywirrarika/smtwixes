@@ -89,10 +89,8 @@ for i in range(len(non)):
     if len(path3) == 0:
         print(non[i], file=FWixnlp3)
         p = model.viterbi_segment(non[i])[0]
-        print(" ".join(p), file=FCombined)
+        print(" ".join(p), file=FCombined3)
     else:
-        if not path3:
-            print("WARNING:", non[i], str(path3))
         print(" ".join(path3), file=FWixnlp3)
         print(" ".join(path3), file=FCombined3)
 
