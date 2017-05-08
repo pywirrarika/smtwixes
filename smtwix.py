@@ -37,7 +37,9 @@ Fo.write(text_tokens)
 
 wix_corpus_morf_seg = "corpus/corpus.morf.seg.wix"
 wix_corpus_wixnlp_seg = "corpus/corpus.wixnlp.seg.wix"
+wix_corpus_wixnlp3_seg = "corpus/corpus.wixnlp3.seg.wix"
 wix_corpus_comb_seg = "corpus/corpus.comb.seg.wix"
+wix_corpus_comb3_seg = "corpus/corpus.comb3.seg.wix"
 wix_seg_model= "corpus/model.morph.bin"
 wix_dic = "corpus/dicplur.norm2.wix"
 wix_lm = "bin/wixgrams.pickle"
@@ -70,9 +72,31 @@ def comb_seg():
     seg.out_to_file()
     print(" ### SegCombined: Done")
 
+
+def wixnlp3_seg():
+    print(" ### SegWixNLP3: Starting segmentation")
+    #data = threading.local()
+    seg = Segment(wix_corpus_norm, wix_corpus_wixnlp3_seg, wix_seg_model, wix_dic, wix_lm, es_lm)
+    seg.classify()
+    seg.segment_wixnlp3()
+    seg.out_to_file()
+    print(" ### SegWixNLP: Done")
+
+def comb3_seg():
+    print(" ### SegCombined3: Starting segmentation")
+    #data = threading.local()
+    seg = Segment(wix_corpus_norm, wix_corpus_comb3_seg, wix_seg_model, wix_dic, wix_lm, es_lm)
+    seg.classify()
+    seg.segment_combined3()
+    seg.out_to_file()
+    print(" ### SegCombined: Done")
+
+
 Process(target=morfessor_seg).start()
 Process(target=wixnlp_seg).start()
+Process(target=wixnlp3_seg).start()
 Process(target=comb_seg).start()
+Process(target=comb3_seg).start()
 
 #morf = threading.Thread(target=morfessor_seg)
 #wix  = threading.Thread(target=wixnlp_seg)

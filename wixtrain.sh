@@ -75,7 +75,7 @@ function partialtrainwixseg {
             exit 0
         fi
         
-        $moses/bin/lmplz -o 3 < $base/corpus/corpus.comb.seg.wix >  $base/corpus/model.seg.arpa.wix
+        $moses/bin/lmplz -o 3 < $base/corpus/corpus.comb3.seg.wix >  $base/corpus/model.seg.arpa.wix
         $moses/bin/build_binary $base/corpus/model.seg.arpa.wix    $base/corpus/train.seg.blm.wix
 }
 
@@ -145,6 +145,21 @@ function trainmorph {
     fi
 }
 
+function dicwixesget {
+    if (( withdic == 1 ))
+    then
+        cp $dicwixes $base/corpus/dicwixes.wixes
+        python3 $wixnlp/tools/sep.py $base/corpus/dicwixes
+        tr -d '-' < $base/corpus/dicwixes.wix > $base/corpus/dicwixes.pre.wix
+        $wixnlp/normwix.py -a $base/corpus/dicwixes.pre.wix $base/corpus/dicwixes.norm.wix
+        $moses/scripts/tokenizer/tokenizer.perl -l es < $base/corpus/dicwixes.es  > $base/corpus/dicwixes.tokens.es -threads 8
+        tr '[:upper:]' '[:lower:]' < $base/corpus/dicwixes.tokens.es > $base/corpus/dicwixes.norm.es
+        cat $base/corpus/dicwixes.norm.es >> $base/corpus/corpus.norm.es
+        #cat $base/corpus/dicwixes.norm.wix >> $base/corpus/corpus.norm.wix
+        cp $base/corpus/corpus.comb3.seg.wix $base/corpus/corpus.norm.wix
+        cat $base/corpus/dicwixes.norm.wix >> $base/corpus/corpus.norm.wix
+    fi
+}
 
 function trainwixeswithmorph {
     echo "Train statical phrase based model with morph"
@@ -170,7 +185,7 @@ function traineswixwithmoprh {
     $moses/scripts/training/train-model.perl\
         -root-dir $base/eswixwithmorph/\
         -external-bin-dir $moses/tools\
-        --lm 0:3:$base/corpus/train.blm.wix\
+        --lm 0:3:$base/corpus/train.seg.blm.wix\
         -corpus $base/corpus/corpus.norm -f es -e wix\
         -alignment grow-diag-final-and \
         --mgiza \
@@ -214,8 +229,12 @@ function traineswixsinmorph {
 function trainwixeswixnlp {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
+    
     rm -rf $base/wixeswixnlp/*
-    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.norm.wix
+    cp $base/corpus/corpus.comb3.seg.wix $base/corpus/corpus.norm.wix
+    
+    dicwixesget
+
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixeswixnlp/\
         -external-bin-dir $moses/tools\
@@ -230,8 +249,12 @@ function trainwixeswixnlp {
 function traineswixwixnlp {
     echo "Train statical phrase based model"
     echo "----------------------------------------------------"
+
     rm -rf $base/eswixwixnlp/*
-    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.norm.wix
+    cp $base/corpus/corpus.comb3.seg.wix $base/corpus/corpus.norm.wix
+
+    dicwixesget
+
     $moses/scripts/training/train-model.perl\
         -root-dir $base/eswixwixnlp/\
         -external-bin-dir $moses/tools\
@@ -247,7 +270,7 @@ function trainwixeshier {
     echo "Train statical hierarchical model"
     echo "----------------------------------------------------"
     rm -rf $base/wixeshier/*
-    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.norm.wix
+    cp $base/corpus/corpus.comb3.seg.wix $base/corpus/corpus.norm.wix
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixeshier/\
         -external-bin-dir $moses/tools\
@@ -263,7 +286,7 @@ function traineswixhier {
     echo "Train statical hierarchical model"
     echo "----------------------------------------------------"
     rm -rf $base/eswixhier/*
-    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.norm.wix
+    cp $base/corpus/corpus.comb3.seg.wix $base/corpus/corpus.norm.wix
     $moses/scripts/training/train-model.perl\
         -root-dir $base/eswixhier/\
         -external-bin-dir $moses/tools\
@@ -422,20 +445,6 @@ fi
 ##### Step 6 
 echo "############### STEP 6 ################"
 echo "-- Adding bilingual dictionary"
-
-if (( withdic == 1 ))
-then
-    cp $dicwixes $base/corpus/dicwixes.wixes
-    python3 $wixnlp/tools/sep.py $base/corpus/dicwixes
-    tr -d '-' < $base/corpus/dicwixes.wix > $base/corpus/dicwixes.pre.wix
-    $wixnlp/normwix.py -a $base/corpus/dicwixes.pre.wix $base/corpus/dicwixes.norm.wix
-    $moses/scripts/tokenizer/tokenizer.perl -l es < $base/corpus/dicwixes.es  > $base/corpus/dicwixes.tokens.es -threads 8
-    tr '[:upper:]' '[:lower:]' < $base/corpus/dicwixes.tokens.es > $base/corpus/dicwixes.norm.es
-    cat $base/corpus/dicwixes.norm.es >> $base/corpus/corpus.norm.es
-    cat $base/corpus/dicwixes.norm.wix >> $base/corpus/corpus.norm.wix
-    cp $base/corpus/corpus.comb.seg.wix $base/corpus/corpus.norm.wix
-    cat $base/corpus/dicwixes.norm.wix >> $base/corpus/corpus.norm.wix
-fi
 
 ###### Step 7 (Starting Moses)
 echo "############### STEP 7 ################"

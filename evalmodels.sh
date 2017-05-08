@@ -132,7 +132,6 @@ fi
 
 if (( morph == 0 && seg == 0 && hier == 1))
 then
-
     echo "Morphological Hierarchical Translation"
 
     python3 seg.py
