@@ -88,7 +88,7 @@ then
         -f $base/eswixsinmorph/model/moses.ini   \
         <  $base/testing/test.tokens.es\
         >  $base/testing/test.hyp.wix
-    cat $base/testing/test.hyp.wix
+    #cat $base/testing/test.hyp.wix
 fi
 
 
@@ -170,7 +170,7 @@ then
     #echo "#WER"
     echo "#BLEU"
     $moses/scripts/generic/multi-bleu.perl -lc $base/testing/test.tokens.es < $base/testing/test.hyp.es
-    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.wix < $base/testing/test.hyp.wix
+    $moses/scripts/generic/multi-bleu.perl -lc $base/corpus/test.norm.wix < $base/testing/test.hyp.wix
 
 else
 

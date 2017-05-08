@@ -77,6 +77,10 @@ function partialtrainwixseg {
         
         $moses/bin/lmplz -o 3 < $base/corpus/corpus.comb3.seg.wix >  $base/corpus/model.seg.arpa.wix
         $moses/bin/build_binary $base/corpus/model.seg.arpa.wix    $base/corpus/train.seg.blm.wix
+
+        $moses/bin/lmplz -o 3 < $base/corpus/corpus.morf.seg.wix >  $base/corpus/model.segmorf.arpa.wix
+        $moses/bin/build_binary $base/corpus/model.segmorf.arpa.wix    $base/corpus/train.segmorf.blm.wix
+
 }
 
 function partialtraineses {
@@ -105,7 +109,6 @@ function normwixcorp {
 
     # Delete empty lines
     sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.wix
-    sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.es
 
     python3 $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/corpus.norm.wix 
     #python3 $wixnlp/normwix.py -a $base/corpus/corpus.wix $base/corpus/corpus.norm2.wix 
@@ -121,6 +124,8 @@ function normescorp {
         exit 0
     fi
 
+    sed -i '/^[[:space:]]*$/d' $base/corpus/corpus.es
+
     # Normalize spanish part of the corpus
     $moses/scripts/tokenizer/tokenizer.perl -l es < $base/corpus/corpus.es  > $base/corpus/corpus.tokens.es -threads 8
     tr '[:upper:]' '[:lower:]' < $base/corpus/corpus.tokens.es > $base/corpus/corpus.norm.es
@@ -129,8 +134,8 @@ function normescorp {
 function trainmorph {
     echo "Train morphology..."
     $base/bin/trainsegment.py -i $base/corpus/corpus.wix -o $base/corpus/model.morph.bin
-    $base/bin/segment.py -m $base/corpus/model.morph.bin -i $base/corpus/corpus.norm.wix -o $base/corpus/corpus.seg.wix
-    cp $base/corpus/corpus.seg.wix $base/corpus/corpus.norm.wix
+    $base/bin/segment.py -m $base/corpus/model.morph.bin -i $base/corpus/corpus.norm.wix -o $base/corpus/corpus.morf.seg.wix
+    cp $base/corpus/corpus.morf.seg.wix $base/corpus/corpus.norm.wix
     if [ -d "$base/wixeswithmorph" ]; then
         mkdir $base/wixeswithmorph
     fi
@@ -185,7 +190,7 @@ function traineswixwithmoprh {
     $moses/scripts/training/train-model.perl\
         -root-dir $base/eswixwithmorph/\
         -external-bin-dir $moses/tools\
-        --lm 0:3:$base/corpus/train.seg.blm.wix\
+        --lm 0:3:$base/corpus/train.segmorf.blm.wix\
         -corpus $base/corpus/corpus.norm -f es -e wix\
         -alignment grow-diag-final-and \
         --mgiza \
