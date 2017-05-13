@@ -121,6 +121,7 @@ class Segment():
                     if len(path) == 0:
                         path = word
                     word[0] = path
+
     def segment_wixnlp3(self):
         #mgrams = Mgrams(debug=True)
         mgrams = M3grams()
@@ -173,6 +174,28 @@ class Segment():
                     if len(path) == 0:
                         path = self.word_morph(word[0])
                     #print(path)
+                    word[0] = path
+
+    def segment_combined_simple(self):
+        """Method that use Simple WixNLP"""
+        for line in self.corp:
+            if self.debug:
+                print(line)
+            for word in line:
+                if word[1] == "S":
+                    v = Verb(word[0])
+                    print("Word to segment:", word[0])
+
+                    m = 1000000
+                    path = []
+                    for v in v.paths:
+                        if len(v) < m:
+                            m=len(v)
+                            thepath = v
+                    if len(path) == 0:
+                        path = self.word_morph(word[0])
+
+                    print("path:", str(path))
                     word[0] = path
 
 
