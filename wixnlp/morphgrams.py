@@ -111,14 +111,36 @@ class M3grams():
         """Returns the most probable segmentation option of a list"""
         max = -1
         seg = []
+        ane = []
         for word in words:
             li = [m[1] for m in word]
+            if "'ane" in li or "ane" in li:
+                if "ane" in li:
+                    i = 0
+                    for l in li:
+                        if l == "ane":
+                            li[i] = "'ane"
+                        i = i + 1
+                ane.append(li)
+                continue
             prob = self.prob(li)
             if self.debug:
                 print(str(li), ":", str(prob))
             if prob > max:
                 seg = li
                 max = prob
+
+        if ane:
+            max = -1
+            seg = []
+            for word in ane:
+             prob = self.prob(li)
+            if self.debug:
+                print(str(li), ":", str(prob))
+            if prob > max:
+                seg = li
+                max = prob
+
         return seg
         
 # This script trains a 2-gram model where the grams

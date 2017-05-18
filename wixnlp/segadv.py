@@ -191,13 +191,13 @@ class Segment():
                     for v in v.paths:
                         if len(v) < m:
                             m=len(v)
-                            thepath = v
-                    if len(path) == 0:
+                            path = v
+
+                    if len(path) != 0:
+                        word[0] = [m[1] for m in path]
+                    else:
                         path = self.word_morph(word[0])
-
-                    print("path:", str(path))
-                    word[0] = path
-
+                        word[0] = path
 
     def print(self, lines=-1):
         """Print results on screen. The printed lines can be 
