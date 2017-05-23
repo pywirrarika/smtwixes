@@ -119,7 +119,7 @@ class Segment():
                     path = mgrams.best(v.paths)
                     #print(path)
                     if len(path) == 0:
-                        path = word
+                        path = word[0]
                     word[0] = path
 
     def segment_wixnlp3(self):
@@ -134,7 +134,7 @@ class Segment():
                     path = mgrams.best(v.paths, tag=True)
                     #print(path)
                     if len(path) == 0:
-                        path = word
+                        path = word[0]
                     word[0] = path
 
 
