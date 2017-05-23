@@ -3,7 +3,7 @@ from wixnlp.wmorph import Verb
 from wixnlp.morphgrams import Mgrams, M3grams
 import morfessor
 
-debug =False 
+debug=False
 
 wix_seg_model= "corpus/model.morph.bin"
 wix_seg_model1= "corpus/segcorp.model.bin"
@@ -72,8 +72,8 @@ for i in range(len(non)):
         print(" ".join(pa), file=FWixnlpA) 
 
     ### MGrams Segmentation
-    path = mgrams.best(v.paths)
-    path3 = m3grams.best(v.paths)
+    path = mgrams.best(v.paths, tag=True)
+    path3 = m3grams.best(v.paths, tag=True)
     if debug:
         print(v.paths)
         print(path)

@@ -107,20 +107,17 @@ class M3grams():
         prob = sum_prob / count
         return prob
 
-    def best(self, words):
+    def best(self, words, tag=False):
         """Returns the most probable segmentation option of a list"""
         max = -1
         seg = []
         ane = []
         for word in words:
-            li = [m[1] for m in word]
+            if tag:
+                li = [m[1]+m[0] for m in word]
+            else:
+                li = [m[1] for m in word]
             if "'ane" in li or "ane" in li:
-                if "ane" in li:
-                    i = 0
-                    for l in li:
-                        if l == "ane":
-                            li[i] = "'ane"
-                        i = i + 1
                 ane.append(li)
                 continue
             prob = self.prob(li)
@@ -217,12 +214,15 @@ class Mgrams():
         prob = sum_prob / count
         return prob
 
-    def best(self, words):
+    def best(self, words, tag=False):
         """Returns the most probable segmentation option of a list"""
         max = 0
         seg = []
         for word in words:
-            li = [m[1] for m in word]
+            if tag:
+                li = [m[1]+m[0]for m in word]
+            else:
+                li = [m[1] for m in word]
             prob = self.prob(li)
             if self.debug:
                 print(str(li), ":", str(prob))

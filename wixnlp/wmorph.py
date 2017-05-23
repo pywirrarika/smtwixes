@@ -83,7 +83,7 @@ class Verb:
                             print("Found:" + "[root]" + root)
                         nrprev = rm.group()
                         nrpath = list(npath)
-                        nrpath.append(("", root))#id of steam TODO
+                        nrpath.append(("00", root))#id of steam TODO
                         
                         if self.debug:
                             print(nrprev)
@@ -108,7 +108,7 @@ class Verb:
                             print("Found first:" + "[root]" + root)
                         nrprev = rm.group()
                         nrpath = list(npath)
-                        nrpath.append(("", root))#id of steam TODO
+                        nrpath.append(("00", root))#id of steam TODO
                         
                         if self.debug:
                             print(nrprev)

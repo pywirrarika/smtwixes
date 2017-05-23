@@ -130,8 +130,8 @@ class Segment():
             for word in line:
                 if word[1] == "S":
                     v = Verb(word[0])
-                    #print(word[0])
-                    path = mgrams.best(v.paths)
+                    #print(v.paths)
+                    path = mgrams.best(v.paths, tag=True)
                     #print(path)
                     if len(path) == 0:
                         path = word
