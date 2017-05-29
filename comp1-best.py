@@ -13,26 +13,31 @@ def compare(hypfile, reffile, verbose=False, model=""):
         print(len(hyp))
     for n in range(len(hyp)):
         i = i + 1
-        if hyp[n] == ref[n]:
-            matched = matched + 1
-        else:
-            if verbose:
-                print(hyp[n], "!=",  ref[n])
+        try:
+            if hyp[n] == ref[n]:
+                matched = matched + 1
+            else:
+                if verbose:
+                    print(hyp[n], "!=",  ref[n])
+        except IndexError:
+            break
     print(model, "Result 1-best match = ", str(float(matched)/float(i)))
 
 if __name__ == "__main__":
-    ref  = "segtest/segmentedtest.wix"
+    ref  = "segtest/testseg.wix"
     morf = "segtest/morfessor.hyp.wix"
+    morf1 = "segtest/morfessor1.hyp.wix"
     wixa = "segtest/wixnlp-alone.hyp.wix"
     wixb = "segtest/wixnlp.hyp.wix"
     wixb3 = "segtest/wixnlp3.hyp.wix"
     comb = "segtest/combined.hyp.wix"
     comb3 = "segtest/combined3.hyp.wix"
 
-    compare(morf, ref, model="Morfessor     ")
-    compare(wixa, ref, model="WixNLP        ")
-    compare(wixb, ref, model="WixNLP+2Grams ")
-    compare(wixb3, ref, model="WixNLP+3Grams ")
-    compare(comb, ref, model="Hybrid        ")
-    compare(comb3, ref, model="Hybrid3       ", verbose=True)
+    compare(morf, ref,  model="Morfessor                ")
+    compare(morf1, ref, model="Morfessor semisuperviced ")
+    compare(wixa, ref,  model="WixNLP                   ")
+    compare(wixb, ref,  model="WixNLP+2Grams            ")
+    compare(wixb3, ref, model="WixNLP+3Grams            ")
+    compare(comb, ref,  model="Hybrid                   ")
+    compare(comb3, ref, model="Hybrid3                  ")
 

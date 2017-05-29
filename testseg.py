@@ -5,10 +5,10 @@ import morfessor
 
 debug=False
 
-wix_seg_model= "corpus/model.morph.bin"
-wix_seg_model1= "corpus/segcorp.model.bin"
-wix_seg = "segtest/segmentedtest.wix"
-wix_non_seg = "segtest/nonsegmentedtest.wix"
+wix_seg_model= "segtest/model0.bin"
+wix_seg_model1= "segtest/model.bin"
+wix_seg = "segtest/testseg.wix"
+wix_non_seg = "segtest/testnseg.wix"
 
 # Hyp files
 wix_morf1_hyp = "segtest/morfessor1.hyp.wix"
@@ -72,8 +72,8 @@ for i in range(len(non)):
         print(" ".join(pa), file=FWixnlpA) 
 
     ### MGrams Segmentation
-    path = mgrams.best(v.paths, tag=True)
-    path3 = m3grams.best(v.paths, tag=True)
+    path = mgrams.best(v.paths)
+    path3 = m3grams.best(v.paths)
     if debug:
         print(v.paths)
         print(path)
@@ -98,7 +98,7 @@ for i in range(len(non)):
     path = model.viterbi_segment(non[i])[0]
     print(" ".join(path), file=FMorf)
 
-    ### Morfessor: Trained with complete corpus
+    ### Morfessor: Trained with anotated semisupervised corpus
     path = model1.viterbi_segment(non[i])[0]
     print(" ".join(path), file=FMorf1)
 
