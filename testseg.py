@@ -9,6 +9,7 @@ wix_seg_model= "segtest/model0.bin"
 wix_seg_model1= "segtest/model.bin"
 wix_seg = "segtest/testseg.wix"
 wix_non_seg = "segtest/testnseg.wix"
+wix_seg_train = "segtest/trainseg.wix"
 
 # Hyp files
 wix_morf1_hyp = "segtest/morfessor1.hyp.wix"
@@ -35,11 +36,11 @@ non = Fnon.read().split("\n")
 
 #Load wixnlp segmentator
 mgrams = Mgrams()
-mgrams.train(wix_seg)
+mgrams.train(wix_seg_train)
 mgrams.load()
 
 m3grams = M3grams()
-m3grams.train(wix_seg)
+m3grams.train(wix_seg_train)
 m3grams.load()
 
 #Load morfessor model

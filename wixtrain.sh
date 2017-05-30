@@ -75,12 +75,13 @@ function partialtrainwixseg {
             exit 0
         fi
         
-        $moses/bin/lmplz -o 3 < $base/corpus/corpus.comb3.seg.wix >  $base/corpus/model.seg.arpa.wix
-        $moses/bin/build_binary $base/corpus/model.seg.arpa.wix    $base/corpus/train.seg.blm.wix
-
         $moses/bin/lmplz -o 3 < $base/corpus/corpus.morf.seg.wix >  $base/corpus/model.segmorf.arpa.wix
         $moses/bin/build_binary $base/corpus/model.segmorf.arpa.wix    $base/corpus/train.segmorf.blm.wix
 
+
+        
+        $moses/bin/lmplz -o 3 < $base/corpus/corpus.comb3.seg.wix >  $base/corpus/model.seg.arpa.wix
+        $moses/bin/build_binary $base/corpus/model.seg.arpa.wix    $base/corpus/train.seg.blm.wix
 }
 
 function partialtraineses {
@@ -238,7 +239,7 @@ function trainwixeswixnlp {
     rm -rf $base/wixeswixnlp/*
     cp $base/corpus/corpus.comb3.seg.wix $base/corpus/corpus.norm.wix
     
-    dicwixesget
+    #dicwixesget
 
     $moses/scripts/training/train-model.perl\
         -root-dir $base/wixeswixnlp/\
@@ -398,11 +399,11 @@ shift $((OPTIND-1))
 ###### Step 1
 echo "############### STEP 1 ################"
 echo "-- Clean folders"
-rm $base/corpus/corpus.es
-rm $base/corpus/corpus.wix
-rm $base/corpus/corpus.norm*;
-rm $base/corpus/corpus.tokens*;
-rm $base/corpus/model.tokens*;
+#rm $base/corpus/corpus.es
+#rm $base/corpus/corpus.wix
+#rm $base/corpus/corpus.norm*;
+#rm $base/corpus/corpus.tokens*;
+#rm $base/corpus/model.tokens*;
 
 cp $corpus/trainset.wixes $base/corpus/corpus.wixes
 

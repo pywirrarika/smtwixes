@@ -1,4 +1,4 @@
-
+import morfessor
 
 # This scrips evaluate the acuracy of WixNLP morphological segmentarion.
 # We take all cases that match 100% and then we 
@@ -6,6 +6,13 @@
 def compare(hypfile, reffile, verbose=False, model=""):
     hyp = open(hypfile).read().split("\n")
     ref = open(reffile).read().split("\n")
+
+    #Preparing EMMA evaluations
+    hypemma = open(hypfile+".emma", "w")
+    emma = open("segtest/seg.wix.emma", "w")
+    nrefemma = open("segtest/nseg.wix", "r").read().split("\n")
+    refemma = open("segtest/testseg.wix", "r").read().split("\n")
+    #end EMMA
 
     matched = 0
     i = 0
@@ -21,6 +28,12 @@ def compare(hypfile, reffile, verbose=False, model=""):
                     print(hyp[n], "!=",  ref[n])
         except IndexError:
             break
+        
+        try:
+            print(nrefemma[i], "\t", hyp[n], file=hypemma, sep="")
+            print(nrefemma[i], "\t", refemma[n], file=emma, sep="")
+        except IndexError:
+            pass
     print(model, "Result 1-best match = ", str(float(matched)/float(i)))
 
 if __name__ == "__main__":
